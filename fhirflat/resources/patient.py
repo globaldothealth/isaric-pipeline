@@ -7,6 +7,7 @@ from ..fhir2flat import fhir2flat
 
 
 class Patient(Patient):
+    # attributes to exclude from the flat representation
     flat_exclusions: set[str] = (
         "meta",
         "implicitRules",
@@ -48,7 +49,7 @@ class Patient(Patient):
         df["json_data"] = df.apply(
             lambda row: row.to_json(date_format="iso", date_unit="s"), axis=1
         )
-        df["fhir"] = df.apply(lambda row: cleanup(cls, row["json_data"]), axis=1)
+        df["fhir"] = df["json_data"].apply(lambda x: cleanup(cls, x))
 
         if len(df) == 1:
             return df["fhir"].iloc[0]
