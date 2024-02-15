@@ -49,7 +49,7 @@ def test_multi_patient_from_flat():
 
     assert len(patients) == 2
 
-    assert patients[0] == Patient(**PATIENT_DICT_INPUT)
+    assert patients[0] == Patient(**PATIENT_DICT_OUT)
 
 
 # Test Condition --------------------------------------------
