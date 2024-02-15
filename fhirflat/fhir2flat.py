@@ -6,7 +6,7 @@ import pandas as pd
 import fhir.resources as fhir
 
 
-def flatten_column(df: pd.DataFrame, column_name: str):
+def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     """
     Takes a column of a dataframe containing dictionaries and flattens it into multiple
     columns.
@@ -25,7 +25,7 @@ def flatten_column(df: pd.DataFrame, column_name: str):
     return new_df
 
 
-def expandCoding(df: pd.DataFrame, column_name: str):
+def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     """
     Turns a column containing a list of dictionaries with coding information into
     2 columns containing a list of strings with the coding information, and the text.
@@ -34,23 +34,22 @@ def expandCoding(df: pd.DataFrame, column_name: str):
     becomes
     [ "http://loinc.org/1234" ], ["Test"]
 
-    If a "text" field has already ben provided, this overrides the display.
+    If a "text" field has already been provided, this overrides the display.
     """
 
-    def expand(row, column_name, text_present=False):
+    def expand(
+        row: pd.Series, column_name: str, text_present: bool = False
+    ) -> pd.Series:
         codes = row[column_name]
         new_codes = []
         new_names = []
         for c in codes:
             new_codes.append(c["system"] + "|" + c["code"])
-            try:
-                new_names.append(c["display"])
-            except KeyError:
-                new_names.append(None)
+            new_names.append(c.get("display"))
 
         row[column_name] = new_codes
         if not text_present:
-            row[column_name.rstrip(".coding") + ".text"] = (
+            row[column_name.removesuffix(".coding") + ".text"] = (
                 new_names  # FIXUP: doesn't put name next to code
             )
         return row
@@ -68,7 +67,7 @@ def expandCoding(df: pd.DataFrame, column_name: str):
     return df
 
 
-def condenseReference(df, reference: str):
+def condenseReference(df: pd.DataFrame, reference: str) -> pd.DataFrame:
     """
     Condenses a reference into a string containing the reference type and the reference
     id.
@@ -79,7 +78,9 @@ def condenseReference(df, reference: str):
     return df
 
 
-def fhir2flat(resource: fhir.resource.Resource, lists=None):
+def fhir2flat(
+    resource: fhir.resource.Resource, lists: list | None = None
+) -> pd.DataFrame:
     """
     Converts a FHIR JSON file into a FHIRflat file.
 

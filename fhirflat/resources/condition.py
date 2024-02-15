@@ -6,6 +6,9 @@ import pandas as pd
 
 from ..fhir2flat import fhir2flat
 from ..flat2fhir import expand_concepts
+from typing import TypeAlias
+
+JsonString: TypeAlias = str
 
 # TODO: Update references to disallow "display" (could contain names)
 
@@ -28,7 +31,7 @@ class Condition(Condition):
     flat_defaults: list[str] = ["clinicalStatus"]
 
     @property
-    def attr_lists(self):
+    def attr_lists(self) -> list[str]:
         """Attributes which take a list of FHIR types."""
         return [
             p.alias
@@ -37,15 +40,19 @@ class Condition(Condition):
         ]
 
     @classmethod
-    def from_flat(cls, file):
+    def from_flat(cls, file: str) -> Condition | list[Condition]:
         """ "
         Takes a FHIRflat pandas dataframe and populates the resource with the data.
 
-        file: parquet file
-            FHIRflat file containing patient data
+        file: str
+            Path to the parquet FHIRflat file containing patient data
+
+        Returns
+        -------
+        Condition or list[Condition]
         """
 
-        def cleanup(cls, data):
+        def cleanup(cls, data: JsonString) -> Condition:
             """
             Load data into a dictionary-like structure, then
             apply resource-specific changes and unpack flattened data
@@ -60,7 +67,10 @@ class Condition(Condition):
             data["clinicalStatus"] = {
                 "coding": [
                     {
-                        "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                        "system": (
+                            "http://terminology.hl7.org/CodeSystem/"
+                            "condition-clinical"
+                        ),
                         "code": "unknown",
                     }
                 ]
@@ -99,8 +109,18 @@ class Condition(Condition):
         else:
             return list(df["fhir"])
 
-    def to_flat(self, filename: str):
-        "Generates a FHIRflat pandas dataframe from the resource."
+    def to_flat(self, filename: str) -> None:
+        """
+        Generates a FHIRflat parquet file from the resource.
+
+        filename: str
+            Name of the parquet file to be generated.
+
+        Returns
+        -------
+        parquet file
+            FHIRflat file containing condition data
+        """
 
         # identify attributes that are lists of FHIR types
         list_resources = self.attr_lists

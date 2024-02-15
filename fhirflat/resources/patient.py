@@ -1,9 +1,10 @@
 from fhir.resources.patient import Patient
 import orjson
-
 import pandas as pd
-
 from ..fhir2flat import fhir2flat
+from typing import TypeAlias
+
+JsonString: TypeAlias = str
 
 
 class Patient(Patient):
@@ -27,15 +28,15 @@ class Patient(Patient):
     )
 
     @classmethod
-    def from_flat(cls, file):
-        """ "
+    def from_flat(cls, file: str) -> Patient | list[Patient]:
+        """
         Takes a FHIRflat pandas dataframe and populates the resource with the data.
 
         file: parquet file
             FHIRflat file containing patient data
         """
 
-        def cleanup(cls, data):
+        def cleanup(cls, data: JsonString) -> Patient:
             # Load the data and apply resource-specific changes
             data = orjson.loads(data)
 
@@ -56,8 +57,18 @@ class Patient(Patient):
         else:
             return list(df["fhir"])
 
-    def to_flat(self, filename: str):
-        "Generates a FHIRflat pandas dataframe from the resource."
+    def to_flat(self, filename: str) -> None:
+        """
+        Generates a FHIRflat parquet file from the resource.
+
+        filename: str
+            Name of the parquet file to be generated.
+
+        Returns
+        -------
+        parquet file
+            FHIRflat file containing patient data
+        """
         # clear data from attributes not used in FHIRflat
         for field in [x for x in self.elements_sequence() if x in self.flat_exclusions]:
             setattr(self, field, None)

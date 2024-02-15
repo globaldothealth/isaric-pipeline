@@ -1,7 +1,9 @@
 # Converts FHIRflat files into FHIR resources
 
 
-def create_codeable_concept(old_dict: dict[str, list[str] | str], name: str):
+def create_codeable_concept(
+    old_dict: dict[str, list[str] | str], name: str
+) -> dict[str, list[str]]:
     """Re-creates a codeableConcept structure from the FHIRflat representation."""
     codes = old_dict[name + ".code"]
     if len(codes) == 1:
@@ -25,7 +27,7 @@ def create_codeable_concept(old_dict: dict[str, list[str] | str], name: str):
     return new_dict
 
 
-def expand_concepts(data: dict, groups: dict[str, list[str]]):
+def expand_concepts(data: dict, groups: dict[str, list[str]]) -> dict:
     """
     Combines columns containing flattened FHIR concepts back into
     JSON-like structures.
