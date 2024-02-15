@@ -82,7 +82,9 @@ CONDITION_DICT_INPUT = {
                     "display": "Problem",
                 },
                 {
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                    "system": (
+                        "http://terminology.hl7.org/CodeSystem/condition-category"
+                    ),
                     "code": "problem-list-item",
                 },
             ]
@@ -155,7 +157,9 @@ CONDITION_DICT_OUT = {
                     "display": "Problem",
                 },
                 {
-                    "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                    "system": (
+                        "http://terminology.hl7.org/CodeSystem/condition-category"
+                    ),
                     "code": "problem-list-item",
                 },
             ]
