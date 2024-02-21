@@ -2,14 +2,14 @@ from fhir.resources.patient import Patient
 import orjson
 import pandas as pd
 from ..fhir2flat import fhir2flat
-from typing import TypeAlias
+from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
 
 
 class Patient(Patient):
     # attributes to exclude from the flat representation
-    flat_exclusions: set[str] = (
+    flat_exclusions: ClassVar[set[str]] = (
         "meta",
         "implicitRules",
         "language",
@@ -26,6 +26,26 @@ class Patient(Patient):
         "communication",
         "link",
     )
+
+    @classmethod
+    def flat_fields(cls) -> list[str]:
+        "All fields that are present in the FHIRflat representation"
+        return [x for x in cls.elements_sequence() if x not in cls.flat_exclusions]
+
+    @classmethod
+    def flat_descriptions(cls) -> dict[str, str]:
+        "Descriptions of the fields in the FHIRflat representation"
+        descrip = {
+            field: cls.__fields__[field].field_info.description
+            for field in cls.flat_fields()
+        }
+
+        descrip["id"] = "The identifier or identification number for the patient."
+        descrip["gender"] = "The sex, sex at birth or gender of the patient."
+        descrip["deceasedBoolean"] = "Indicates if the patient has died."
+        descrip["deceasedDateTime"] = "Date of death if the patient has died."
+
+        return descrip
 
     @classmethod
     def from_flat(cls, file: str) -> Patient | list[Patient]:

@@ -6,7 +6,7 @@ import pandas as pd
 
 from ..fhir2flat import fhir2flat
 from ..flat2fhir import expand_concepts
-from typing import TypeAlias
+from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
 
@@ -15,7 +15,8 @@ JsonString: TypeAlias = str
 
 class Condition(Condition):
     # attributes to exclude from the flat representation
-    flat_exclusions: set[str] = (
+    flat_exclusions: ClassVar[set[str]] = (
+        "id",
         "meta",
         "implicitRules",
         "language",
@@ -25,10 +26,37 @@ class Condition(Condition):
         "identifier",
         "verificationStatus",
         "evidence",
+        "note",
+        "participant",
     )
 
     # required attributes that are not present in the FHIRflat representation
-    flat_defaults: list[str] = ["clinicalStatus"]
+    flat_defaults: ClassVar[list[str]] = ["clinicalStatus"]
+
+    @classmethod
+    def flat_fields(cls) -> list[str]:
+        "All fields that are present in the FHIRflat representation"
+        return [
+            x
+            for x in cls.elements_sequence()
+            if (x not in cls.flat_exclusions and x not in cls.flat_defaults)
+        ]
+
+    @classmethod
+    def flat_descriptions(cls) -> dict[str, str]:
+        """
+        Descriptions of the fields in the FHIRflat representation
+        For use in LLM discussions & parser generation
+        """
+        descrip = {
+            field: cls.__fields__[field].field_info.description
+            for field in cls.flat_fields()
+        }
+
+        descrip["code"] = "Lists the condition, problem or diagnosis."
+        descrip["subject"] = "The patient's identification number."
+
+        return descrip
 
     @property
     def attr_lists(self) -> list[str]:
