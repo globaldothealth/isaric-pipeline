@@ -1,6 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import os
+import datetime
 from fhirflat.resources.patient import Patient
 from fhirflat.resources.condition import Condition
 
@@ -138,6 +139,28 @@ CONDITION_DICT_INPUT = {
     ],
 }
 
+CONDITION_FLAT = {
+    "resourceType": ["Condition"],
+    "category.code": [
+        [
+            "http://snomed.info/sct|55607006",
+            "http://terminology.hl7.org/CodeSystem/condition-category|problem-list-item",  # noqa: E501
+        ]
+    ],
+    "category.text": [["Problem", None]],
+    "bodySite.code": ["http://snomed.info/sct|38266002"],
+    "bodySite.text": ["whole body"],
+    "onsetDateTime": [datetime.date(2013, 4, 2)],
+    "abatementString": ["around April 9, 2013"],
+    "recordedDate": [datetime.date(2013, 4, 4)],
+    "severity.code": ["http://snomed.info/sct|255604002"],
+    "severity.text": ["Mild"],
+    "code.code": ["http://snomed.info/sct|386661006"],
+    "code.text": ["Fever"],
+    "subject": ["Patient/f201"],
+    "encounter": ["Encounter/f201"],
+}
+
 CONDITION_DICT_OUT = {
     "clinicalStatus": {
         "coding": [
@@ -204,7 +227,7 @@ def test_condition_to_flat():
 
     assert_frame_equal(
         pd.read_parquet("test_condition.parquet"),
-        pd.read_parquet("tests/data/condition_flat.parquet"),
+        pd.DataFrame(CONDITION_FLAT),
     )
     os.remove("test_condition.parquet")
 
