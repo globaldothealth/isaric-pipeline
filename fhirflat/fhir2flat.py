@@ -94,15 +94,16 @@ def fhir2flat(
 
     if lists:
         list_cols = [n for n in lists if n in df.columns]
-        df = df.explode([n for n in list_cols])
-        if len(df) == 1:
-            # only one concept in each list
-            for lc in list_cols:
-                df = flatten_column(df, lc)
-        else:
-            raise NotImplementedError(
-                "Can't handle lists with more than one concept yet"
-            )
+        if list_cols:
+            df = df.explode([n for n in list_cols])
+            if len(df) == 1:
+                # only one concept in each list
+                for lc in list_cols:
+                    df = flatten_column(df, lc)
+            else:
+                raise NotImplementedError(
+                    "Can't handle lists with more than one concept yet"
+                )
 
     # expand all instances of the "coding" list
     for coding in df.columns[df.columns.str.endswith("coding")]:

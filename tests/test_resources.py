@@ -139,7 +139,6 @@ CONDITION_DICT_INPUT = {
 }
 
 CONDITION_DICT_OUT = {
-    "id": "c201",
     "clinicalStatus": {
         "coding": [
             {
