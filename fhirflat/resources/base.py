@@ -86,6 +86,12 @@ class FHIRFlatBase(DomainResource):
             FHIRflat file containing condition data
         """
 
+        # TODO: add support for lists of fhir resources, most likely from a fhir bundle
+        # or single file json output.
+        # Most likely the input format from FHIR bulk export or for import into FHIR
+        # server will be ndjson as referenced in
+        # https://build.fhir.org/ig/HL7/bulk-data/export.html.
+
         # identify attributes that are lists of FHIR types
         list_resources = self.attr_lists()
 
