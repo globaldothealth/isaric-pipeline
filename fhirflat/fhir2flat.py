@@ -2,8 +2,13 @@
 Convert FHIR resources as JSON files to FHIRflat CSV files.
 """
 
+from __future__ import annotations
+
 import pandas as pd
-import fhir.resources as fhir
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .resources.base import FHIRFlatBase
 
 
 def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -49,9 +54,7 @@ def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
 
         row[column_name] = new_codes
         if not text_present:
-            row[column_name.removesuffix(".coding") + ".text"] = (
-                new_names  # FIXUP: doesn't put name next to code
-            )
+            row[column_name.removesuffix(".coding") + ".text"] = new_names
         return row
 
     text_present = False
@@ -90,9 +93,7 @@ def condenseReference(df: pd.DataFrame, reference: str) -> pd.DataFrame:
     return df
 
 
-def fhir2flat(
-    resource: fhir.resource.Resource, lists: list | None = None
-) -> pd.DataFrame:
+def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame:
     """
     Converts a FHIR JSON file into a FHIRflat file.
 
