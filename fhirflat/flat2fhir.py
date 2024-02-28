@@ -41,6 +41,11 @@ def expand_concepts(data: dict, groups: dict[str, list[str]]) -> dict:
             if k + ".code" in v_dict.keys():
                 v = create_codeable_concept(v_dict, k)
                 expanded[k] = v
+            elif "period" in k.lower():
+                v = {"start": data[k + ".start"], "end": data[k + ".end"]}
+                expanded[k] = v
+            else:
+                raise ValueError("Unrecognized concept type")
 
     for k in keys_to_replace:
         data.pop(k)

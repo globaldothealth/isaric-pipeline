@@ -2,8 +2,13 @@
 Convert FHIR resources as JSON files to FHIRflat CSV files.
 """
 
+from __future__ import annotations
+
 import pandas as pd
-import fhir.resources as fhir
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .resources.base import FHIRFlatBase
 
 
 def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -49,19 +54,25 @@ def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
 
         row[column_name] = new_codes
         if not text_present:
-            row[column_name.removesuffix(".coding") + ".text"] = (
-                new_names  # FIXUP: doesn't put name next to code
-            )
+            row[column_name.removesuffix(".coding") + ".text"] = new_names
         return row
 
     text_present = False
-    if column_name.rstrip(".coding") + ".text" in df.columns:
+    if column_name.removesuffix(".coding") + ".text" in df.columns:
         text_present = True
 
     df = df.apply(lambda x: expand(x, column_name, text_present), axis=1)
 
+    if not text_present:
+        df.insert(
+            df.columns.get_loc(column_name) + 1,
+            column_name.removesuffix(".coding") + ".text",
+            df.pop(column_name.removesuffix(".coding") + ".text"),
+        )
+
     df.rename(
-        columns={column_name: column_name.rstrip(".coding") + ".code"}, inplace=True
+        columns={column_name: column_name.removesuffix(".coding") + ".code"},
+        inplace=True,
     )
 
     return df
@@ -75,12 +86,14 @@ def condenseReference(df: pd.DataFrame, reference: str) -> pd.DataFrame:
     References are already present as "Patient/f201", so just need to rename the column.
     """
     df.rename(columns={reference: reference.replace(".reference", "")}, inplace=True)
+
+    # drop any display text for references, might contain identifying information
+    if reference.removesuffix(".reference") + ".display" in df.columns:
+        df.drop(columns=reference.removesuffix(".reference") + ".display", inplace=True)
     return df
 
 
-def fhir2flat(
-    resource: fhir.resource.Resource, lists: list | None = None
-) -> pd.DataFrame:
+def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame:
     """
     Converts a FHIR JSON file into a FHIRflat file.
 
@@ -95,7 +108,10 @@ def fhir2flat(
     if lists:
         list_cols = [n for n in lists if n in df.columns]
         if list_cols:
-            df = df.explode([n for n in list_cols])
+            try:
+                df = df.explode([n for n in list_cols])
+            except ValueError:
+                raise ValueError("Can't explode lists with more than one concept yet")
             if len(df) == 1:
                 # only one concept in each list
                 for lc in list_cols:
