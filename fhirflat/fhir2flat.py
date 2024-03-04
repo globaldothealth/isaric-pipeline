@@ -49,9 +49,11 @@ def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
         new_codes = []
         new_names = []
         for c in codes:
-            new_codes.append(c["system"] + "|" + c["code"])
+            if c.get("code"):
+                new_codes.append(c.get("system") + "|" + c.get("code"))
             new_names.append(c.get("display"))
 
+        # empty list if no alphanumeric code is present
         row[column_name] = new_codes
         if not text_present:
             row[column_name.removesuffix(".coding") + ".text"] = new_names

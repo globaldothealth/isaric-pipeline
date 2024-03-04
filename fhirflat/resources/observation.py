@@ -1,7 +1,6 @@
 from fhir.resources.observation import Observation
 from .base import FHIRFlatBase
 import orjson
-from itertools import groupby
 
 from ..flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar
@@ -49,14 +48,7 @@ class Observation(Observation, FHIRFlatBase):
         # add default status back in
         data["status"] = "final"
 
-        # find and group keys belonging to the same concept
-        grouped_keys = [k for k in data.keys() if "." in k]
-        grouped_keys.sort()
-        groups = [
-            {k: [gs for gs in g]}
-            for k, g in groupby(grouped_keys, lambda x: x.split(".")[0])
-        ]
-        data = expand_concepts(data, groups)
+        data = expand_concepts(data)
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:

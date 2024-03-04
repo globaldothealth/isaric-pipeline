@@ -66,6 +66,10 @@ def test_flatten_column(data, expected):
                 "code.text": [["Test", "Snomed Test"]],
             },
         ),
+        (
+            {"code.coding": [[{"display": "Test"}]]},
+            {"code.code": [[]], "code.text": [["Test"]]},
+        ),
     ],
 )
 def test_expandCoding(data, expected):
