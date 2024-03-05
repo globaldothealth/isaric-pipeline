@@ -35,6 +35,21 @@ def create_codeable_concept(
     return new_dict
 
 
+def createQuantity(df, group):
+    quant = {}
+
+    for attribute in df.keys():
+        attr = attribute.split(".")[-1]
+        if attr == "code":
+            system, code = df[group + ".code"].split("|")
+            quant["code"] = code
+            quant["system"] = system
+        else:
+            quant[attr] = df[group + "." + attr]
+
+    return quant
+
+
 def expand_concepts(data: dict) -> dict:
     """
     Combines columns containing flattened FHIR concepts back into
@@ -56,7 +71,9 @@ def expand_concepts(data: dict) -> dict:
             # add outside group key back on
             v_dict = {f"{k}." + old_k: v for old_k, v in new_v_dict.items()}
 
-        if k + ".code" in v_dict.keys():
+        if k.endswith("Quantity"):
+            expanded[k] = createQuantity(v_dict, k)
+        elif k + ".code" in v_dict.keys():
             v = create_codeable_concept(v_dict, k)
             expanded[k] = v
         elif "period" in k.lower():

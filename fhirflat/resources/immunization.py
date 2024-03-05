@@ -39,7 +39,9 @@ class Immunization(_Immunization, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in ["subject", "encounter"]:
+        for field in ["patient", "encounter", "location"] + [
+            x for x in data.keys() if x.endswith(".reference")
+        ]:
             if field in data.keys():
                 data[field] = {"reference": data[field]}
 

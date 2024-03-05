@@ -103,6 +103,53 @@ IMMUNIZATION_FLAT = {
     "doseQuantity.code": "http://unitsofmeasure.org|mg",
 }
 
+IMMUNIZATION_DICT_OUT = {
+    "resourceType": "Immunization",
+    "status": "completed",
+    "vaccineCode": {
+        "coding": [
+            {
+                "system": "http://hl7.org/fhir/sid/cvx",
+                "code": "175",
+                "display": "Rabies - IM Diploid cell culture",
+            }
+        ],
+    },
+    "manufacturer": {"reference": {"reference": "Organization/hl7"}},
+    "patient": {"reference": "Patient/example"},
+    "encounter": {"reference": "Encounter/example"},
+    "occurrenceDateTime": "2021-09-12T00:00:00",
+    "location": {"reference": "Location/1"},
+    "site": {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ActSite",
+                "code": "LA",
+                "display": "left arm",
+            }
+        ]
+    },
+    "route": {
+        "coding": [
+            {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-RouteOfAdministration",  # noqa:E501
+                "code": "IM",
+                "display": "Injection, intramuscular",
+            }
+        ]
+    },
+    "doseQuantity": {"value": 5, "system": "http://unitsofmeasure.org", "code": "mg"},
+    "reason": [{"reference": {"reference": "Observation/example"}}],
+    "isSubpotent": False,
+    "reaction": [
+        {
+            "date": "2021-09-12T00:00:00",
+            "manifestation": {"reference": {"reference": "Observation/example2"}},
+            "reported": False,
+        }
+    ],
+}
+
 
 def test_immunization_to_flat():
     vacc = Immunization(**IMMUNIZATION_DICT_INPUT)
@@ -118,9 +165,9 @@ def test_immunization_to_flat():
     os.remove("test_immunization.parquet")
 
 
-# def test_observation_from_flat():
-#     visit = Encounter(**ENCOUNTER_DICT_OUT)
+def test_observation_from_flat():
+    vacc = Immunization(**IMMUNIZATION_DICT_OUT)
 
-#     flat_visit = Encounter.from_flat("tests/data/encounter_flat.parquet")
+    flat_vacc = Immunization.from_flat("tests/data/immunization_flat.parquet")
 
-#     assert visit == flat_visit
+    assert vacc == flat_vacc
