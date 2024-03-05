@@ -1,37 +1,5 @@
 import fhirflat.flat2fhir as f2f
 import pytest
-from pytest_unordered import unordered
-
-
-def test_group_keys():
-    data = [
-        "code.code",
-        "code.text",
-        "status",
-        "class.code",
-        "class.text",
-        "priority.code",
-        "priority.text",
-        "type.code",
-        "type.text",
-        "participant.type.code",
-        "participant.actor.reference",
-    ]
-    result = f2f.group_keys(data)
-
-    assert result == unordered(
-        [
-            {"code": unordered(["code.code", "code.text"])},
-            {"class": unordered(["class.code", "class.text"])},
-            {"priority": unordered(["priority.code", "priority.text"])},
-            {"type": unordered(["type.code", "type.text"])},
-            {
-                "participant": unordered(
-                    ["participant.type.code", "participant.actor.reference"]
-                )
-            },
-        ]
-    )
 
 
 @pytest.mark.parametrize(

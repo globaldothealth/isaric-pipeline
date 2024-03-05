@@ -19,7 +19,7 @@ def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
 
     i = df.columns.get_loc(column_name)
 
-    expanded_col = df[column_name].apply(pd.Series)
+    expanded_col = pd.json_normalize(df[column_name])
     expanded_col.columns = [
         column_name + "." + str(col) for col in expanded_col.columns
     ]
@@ -28,6 +28,28 @@ def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     new_df = pd.concat([df.iloc[:, :i], expanded_col, df.iloc[:, i:]], axis=1)
 
     return new_df
+
+
+def explode_and_flatten(df, list_cols):
+    """
+    Explodes and flattens a dataframe.
+
+    df: flattened fhir resource
+    lists: list of columns containing lists in the dataframe
+    """
+    try:
+        df = df.explode([n for n in list_cols])
+    except ValueError:
+        raise ValueError("Can't explode a dataframe with lists of different lengths")
+
+    if len(df) == 1:
+        # only one concept in each list
+        for lc in list_cols:
+            df = flatten_column(df, lc)
+    else:
+        raise NotImplementedError("Can't handle lists with more than one concept yet")
+
+    return df
 
 
 def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -87,11 +109,30 @@ def condenseReference(df: pd.DataFrame, reference: str) -> pd.DataFrame:
 
     References are already present as "Patient/f201", so just need to rename the column.
     """
-    df.rename(columns={reference: reference.replace(".reference", "")}, inplace=True)
+    # if reference is still nested in a dictionary, retrieve it
+    ref = df[reference].str["reference"]
+    if all(ref.isna()):
+        df.rename(
+            columns={reference: "".join(reference.rsplit(".reference", 1))},
+            inplace=True,
+        )
+    else:
+        df[reference] = ref
 
     # drop any display text for references, might contain identifying information
     if reference.removesuffix(".reference") + ".display" in df.columns:
         df.drop(columns=reference.removesuffix(".reference") + ".display", inplace=True)
+    return df
+
+
+def condenseSystem(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
+    """
+    For instances of coding not wrapped in a "coding" block, condenses the system and
+     code columns into one.
+    """
+    base_name = col_name.removesuffix(".system")
+    df[base_name + ".code"] = df[col_name] + "|" + df[base_name + ".code"]
+    df.drop(col_name, axis=1, inplace=True)
     return df
 
 
@@ -110,18 +151,7 @@ def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame
     if lists:
         list_cols = [n for n in lists if n in df.columns]
         if list_cols:
-            try:
-                df = df.explode([n for n in list_cols])
-            except ValueError:
-                raise ValueError("Can't explode lists with more than one concept yet")
-            if len(df) == 1:
-                # only one concept in each list
-                for lc in list_cols:
-                    df = flatten_column(df, lc)
-            else:
-                raise NotImplementedError(
-                    "Can't handle lists with more than one concept yet"
-                )
+            df = explode_and_flatten(df, list_cols)
 
     # expand all instances of the "coding" list
     for coding in df.columns[df.columns.str.endswith("coding")]:
@@ -130,5 +160,9 @@ def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame
     # condense all references
     for reference in df.columns[df.columns.str.endswith("reference")]:
         df = condenseReference(df, reference)
+
+    # condense any remaining codes not wrapped in a "coding" block
+    for col in df.columns[df.columns.str.endswith(".system")]:
+        df = condenseSystem(df, col)
 
     return df
