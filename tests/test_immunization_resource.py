@@ -165,7 +165,7 @@ def test_immunization_to_flat():
     os.remove("test_immunization.parquet")
 
 
-def test_observation_from_flat():
+def test_immunization_from_flat():
     vacc = Immunization(**IMMUNIZATION_DICT_OUT)
 
     flat_vacc = Immunization.from_flat("tests/data/immunization_flat.parquet")
