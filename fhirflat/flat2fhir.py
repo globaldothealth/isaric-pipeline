@@ -71,7 +71,8 @@ def expand_concepts(data: dict) -> dict:
             # add outside group key back on
             v_dict = {f"{k}." + old_k: v for old_k, v in new_v_dict.items()}
 
-        if k.endswith("Quantity"):
+        if k.endswith("Quantity") or k == "dose":
+            # most are labelled with 'quantity' in the name, but 'dose' is not
             expanded[k] = createQuantity(v_dict, k)
         elif k + ".code" in v_dict.keys():
             v = create_codeable_concept(v_dict, k)
