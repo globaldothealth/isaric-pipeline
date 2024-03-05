@@ -71,7 +71,7 @@ def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
         new_codes = []
         new_names = []
         for c in codes:
-            if c.get("code"):
+            if c.get("code") and c.get("system"):
                 new_codes.append(c.get("system") + "|" + c.get("code"))
             new_names.append(c.get("display"))
 

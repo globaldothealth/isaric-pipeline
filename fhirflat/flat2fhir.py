@@ -77,7 +77,7 @@ def expand_concepts(data: dict) -> dict:
             v = create_codeable_concept(v_dict, k)
             expanded[k] = v
         elif "period" in k.lower():
-            v = {"start": data[k + ".start"], "end": data[k + ".end"]}
+            v = {"start": data.get(k + ".start"), "end": data.get(k + ".end")}
             expanded[k] = v
         else:
             expanded[k] = {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
