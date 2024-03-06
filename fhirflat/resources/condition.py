@@ -68,7 +68,6 @@ class Condition(_Condition, FHIRFlatBase):
         data = expand_concepts(data, cls)
 
         # create lists for properties which are lists of FHIR types
-        # FIXUP: This is not elegant, or fast
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
             if type(data[field]) is not list:
                 data[field] = [data[field]]

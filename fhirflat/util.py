@@ -22,6 +22,10 @@ def group_keys(data_keys: list[str]) -> list[dict[str, list[str]]]:
 
 
 def get_fhirtype(t: str):
+    """
+    Finds the relevent class from fhir.resources for a given string.
+    """
+
     try:
         return getattr(getattr(fr, t.lower()), t)
     except AttributeError:
