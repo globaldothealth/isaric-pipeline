@@ -41,10 +41,11 @@ class Specimen(_Specimen, FHIRFlatBase):
             if field in data.keys():
                 data[field] = {"reference": data[field]}
 
-        data = expand_concepts(data)
+        data = expand_concepts(data, cls)
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            data[field] = [data[field]]
+            if type(data[field]) is not list:
+                data[field] = [data[field]]
 
         return cls(**data)

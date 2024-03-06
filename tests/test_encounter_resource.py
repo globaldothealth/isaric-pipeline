@@ -250,7 +250,7 @@ def test_encounter_to_flat():
     os.remove("test_encounter.parquet")
 
 
-def test_observation_from_flat():
+def test_encounter_from_flat():
     visit = Encounter(**ENCOUNTER_DICT_OUT)
 
     flat_visit = Encounter.from_flat("tests/data/encounter_flat.parquet")

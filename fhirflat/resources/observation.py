@@ -1,4 +1,5 @@
-from fhir.resources.observation import Observation
+from __future__ import annotations
+from fhir.resources.observation import Observation as _Observation
 from .base import FHIRFlatBase
 import orjson
 
@@ -8,7 +9,7 @@ from typing import TypeAlias, ClassVar
 JsonString: TypeAlias = str
 
 
-class Observation(Observation, FHIRFlatBase):
+class Observation(_Observation, FHIRFlatBase):
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
         "id",
@@ -48,10 +49,11 @@ class Observation(Observation, FHIRFlatBase):
         # add default status back in
         data["status"] = "final"
 
-        data = expand_concepts(data)
+        data = expand_concepts(data, cls)
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            data[field] = [data[field]]
+            if type(data[field]) is not list:
+                data[field] = [data[field]]
 
         return cls(**data)

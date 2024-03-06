@@ -1,4 +1,5 @@
-from fhir.resources.condition import Condition
+from __future__ import annotations
+from fhir.resources.condition import Condition as _Condition
 from .base import FHIRFlatBase
 import orjson
 
@@ -10,7 +11,7 @@ JsonString: TypeAlias = str
 # TODO: Update references to disallow "display" (could contain names)
 
 
-class Condition(Condition, FHIRFlatBase):
+class Condition(_Condition, FHIRFlatBase):
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
         "id",
@@ -64,11 +65,12 @@ class Condition(Condition, FHIRFlatBase):
             ]
         }
 
-        data = expand_concepts(data)
+        data = expand_concepts(data, cls)
 
         # create lists for properties which are lists of FHIR types
         # FIXUP: This is not elegant, or fast
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            data[field] = [data[field]]
+            if type(data[field]) is not list:
+                data[field] = [data[field]]
 
         return cls(**data)

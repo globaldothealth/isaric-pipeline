@@ -1,5 +1,5 @@
 from __future__ import annotations
-from fhir.resources.encounter import Encounter as baseEncounter
+from fhir.resources.encounter import Encounter as _Encounter
 from .base import FHIRFlatBase
 import orjson
 
@@ -9,7 +9,7 @@ from typing import TypeAlias, ClassVar
 JsonString: TypeAlias = str
 
 
-class Encounter(baseEncounter, FHIRFlatBase):
+class Encounter(_Encounter, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
@@ -51,10 +51,11 @@ class Encounter(baseEncounter, FHIRFlatBase):
         # add default status back in
         data["status"] = "completed"
 
-        data = expand_concepts(data)
+        data = expand_concepts(data, cls)
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            data[field] = [data[field]]
+            if type(data[field]) is not list:
+                data[field] = [data[field]]
 
         return cls(**data)

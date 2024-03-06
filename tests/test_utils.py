@@ -1,5 +1,9 @@
+import pytest
 from pytest_unordered import unordered
-from fhirflat.util import group_keys
+from fhirflat.util import group_keys, get_fhirtype
+from fhir.resources.quantity import Quantity
+from fhir.resources.codeableconcept import CodeableConcept
+from fhir.resources.medicationstatement import MedicationStatementAdherence
 
 
 def test_group_keys():
@@ -27,3 +31,16 @@ def test_group_keys():
             ["participant.type.code", "participant.actor.reference"]
         ),
     }
+
+
+@pytest.mark.parametrize(
+    "input, expected",
+    [
+        ("Quantity", Quantity),
+        ("CodeableConcept", CodeableConcept),
+        ("MedicationStatementAdherence", MedicationStatementAdherence),
+    ],
+)
+def test_get_fhirtype(input, expected):
+    result = get_fhirtype(input)
+    assert result == expected

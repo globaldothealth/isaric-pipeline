@@ -32,7 +32,8 @@ def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
 
 def explode_and_flatten(df, list_cols):
     """
-    Explodes and flattens a dataframe.
+    Recursively explodes and flattens a dataframe.
+    Columns containing a 'coding' list are left intact for later processing.
 
     df: flattened fhir resource
     lists: list of columns containing lists in the dataframe
@@ -48,6 +49,16 @@ def explode_and_flatten(df, list_cols):
             df = flatten_column(df, lc)
     else:
         raise NotImplementedError("Can't handle lists with more than one concept yet")
+
+    # check if any columns remain containing lists that aren't 'coding' chunks
+    list_columns = df.map(lambda x: isinstance(x, list))
+    new_list_cols = [
+        col
+        for col in df.columns
+        if (list_columns[col].any() and not col.endswith("coding"))
+    ]
+    if new_list_cols:
+        df = explode_and_flatten(df, new_list_cols)
 
     return df
 

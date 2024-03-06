@@ -1,5 +1,9 @@
 # Converts FHIRflat files into FHIR resources
-from .util import group_keys
+from .util import group_keys, get_fhirtype
+from fhir.resources.quantity import Quantity
+from fhir.resources.codeableconcept import CodeableConcept
+from fhir.resources.period import Period
+import fhir.resources as fr
 
 
 def create_codeable_concept(
@@ -50,13 +54,23 @@ def createQuantity(df, group):
     return quant
 
 
-def expand_concepts(data: dict) -> dict:
+def expand_concepts(
+    data: dict, data_class: type[fr.domainresource.DomainResource]
+) -> dict:
     """
     Combines columns containing flattened FHIR concepts back into
     JSON-like structures.
     """
-
     groups = group_keys(data.keys())
+    group_classes = {
+        k: (
+            data_class.schema()["properties"][k].get("items").get("type")
+            if data_class.schema()["properties"][k].get("items") is not None
+            else data_class.schema()["properties"][k].get("type")
+        )
+        for k in groups.keys()
+    }
+    group_classes = {k: get_fhirtype(v) for k, v in group_classes.items()}
 
     expanded = {}
     keys_to_replace = []
@@ -67,17 +81,22 @@ def expand_concepts(data: dict) -> dict:
             # strip the outside group name
             stripped_dict = {s.split(".", 1)[1]: v_dict[s] for s in v}
             # call recursively
-            new_v_dict = expand_concepts(stripped_dict)
+            new_v_dict = expand_concepts(stripped_dict, data_class=group_classes[k])
             # add outside group key back on
             v_dict = {f"{k}." + old_k: v for old_k, v in new_v_dict.items()}
 
-        if k.endswith("Quantity") or k == "dose":
-            # most are labelled with 'quantity' in the name, but 'dose' is not
+        if all(isinstance(v, dict) for v in v_dict.values()):
+            # coming back out of nested recursion
+            expanded[k] = {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
+            if data_class.schema()["properties"][k].get("type") == "array":
+                expanded[k] = [expanded[k]]
+
+        elif group_classes[k] == Quantity:
             expanded[k] = createQuantity(v_dict, k)
-        elif k + ".code" in v_dict.keys():
+        elif group_classes[k] == CodeableConcept:
             v = create_codeable_concept(v_dict, k)
             expanded[k] = v
-        elif "period" in k.lower():
+        elif group_classes[k] == Period:
             v = {"start": data.get(k + ".start"), "end": data.get(k + ".end")}
             expanded[k] = v
         else:

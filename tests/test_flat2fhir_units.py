@@ -1,5 +1,6 @@
 import fhirflat.flat2fhir as f2f
 import pytest
+from fhir.resources.encounter import Encounter
 
 
 @pytest.mark.parametrize(
@@ -69,54 +70,18 @@ def test_create_codeable_concept(data_groups, expected):
 
 
 @pytest.mark.parametrize(
-    "data, expected",
+    "data_class, expected",
     [
         (
-            {"code.code": ["http://loinc.org|1234"], "code.text": ["Test"]},
-            {
-                "code": {
-                    "coding": [
-                        {
-                            "system": "http://loinc.org",
-                            "code": "1234",
-                            "display": "Test",
-                        }
-                    ]
-                }
-            },
-        ),
-        (
-            {
-                "code.code": [
-                    "http://loinc.org|1234",
-                    "http://snomed.info/sct|5678",
-                ],
-                "code.text": ["Test", "Snomed Test"],
-            },
-            {
-                "code": {
-                    "coding": [
-                        {
-                            "system": "http://loinc.org",
-                            "code": "1234",
-                            "display": "Test",
-                        },
-                        {
-                            "system": "http://snomed.info/sct",
-                            "code": "5678",
-                            "display": "Snomed Test",
-                        },
-                    ]
-                }
-            },
-        ),
-        (
-            {
-                "admission.admitSource.code": ["http://snomed.info/sct|309902002"],
-                "admission.admitSource.text": ["Clinical Oncology Department"],
-                "admission.destination": {"reference": "Location/2"},
-                "admission.origin": {"reference": "Location/2"},
-            },
+            (
+                {
+                    "admission.admitSource.code": ["http://snomed.info/sct|309902002"],
+                    "admission.admitSource.text": ["Clinical Oncology Department"],
+                    "admission.destination": {"reference": "Location/2"},
+                    "admission.origin": {"reference": "Location/2"},
+                },
+                Encounter,
+            ),
             {
                 "admission": {
                     "admitSource": {
@@ -135,7 +100,8 @@ def test_create_codeable_concept(data_groups, expected):
         ),
     ],
 )
-def test_expand_concepts(data, expected):
-    result = f2f.expand_concepts(data)
+def test_expand_concepts(data_class, expected):
+    data, data_class = data_class
+    result = f2f.expand_concepts(data, data_class)
 
     assert result == expected
