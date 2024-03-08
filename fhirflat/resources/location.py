@@ -1,5 +1,5 @@
 from __future__ import annotations
-from fhir.resources.organization import Organization as _Organization
+from fhir.resources.location import Location as _Location
 from .base import FHIRFlatBase
 import orjson
 
@@ -9,18 +9,19 @@ from typing import TypeAlias, ClassVar
 JsonString: TypeAlias = str
 
 
-class Organization(_Organization, FHIRFlatBase):
+class Location(_Location, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
         "id",
         "identifier",
-        "active",
-        "contact",  # phone numbers, addresses
+        "status",
+        "contact",  # phone numbers, addresses,
+        "hoursOfOperation",
     )
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Organization:
+    def cleanup(cls, data: JsonString) -> Location:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
@@ -29,15 +30,12 @@ class Organization(_Organization, FHIRFlatBase):
         data = orjson.loads(data)
 
         for field in [
+            "managingOrganization",
             "partOf",
             "endpoint",
-            "qualification.issuer",
         ]:
             if field in data.keys():
                 data[field] = {"reference": data[field]}
-
-        # add default status back in
-        data["active"] = True
 
         data = expand_concepts(data, cls)
 
