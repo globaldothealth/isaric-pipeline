@@ -62,17 +62,17 @@ ENCOUNTER_DICT_INPUT = {
     ],
     "appointment": [{"reference": "Appointment/example"}],
     "actualPeriod": {"start": "2013-03-11", "end": "2013-03-20"},
-    # "reason": [
-    #     {
-    #         "value": [
-    #             {
-    #                 "concept": {
-    #                     "text": "The patient seems to suffer from bilateral pneumonia and renal insufficiency, most likely due to chemotherapy."  # noqa: E501
-    #                 }
-    #             }
-    #         ]
-    #     }
-    # ],
+    "reason": [
+        {
+            "value": [
+                {
+                    "concept": {
+                        "text": "The patient seems to suffer from bilateral pneumonia and renal insufficiency, most likely due to chemotherapy."  # noqa: E501
+                    }
+                }
+            ]
+        }
+    ],
     # "diagnosis": [
     #     {
     #         "condition": [{"reference": {"reference": "Condition/stroke"}}],
@@ -161,6 +161,7 @@ ENCOUNTER_FLAT = {
     "type.text": "Inpatient stay for nine days",
     "episodeOfCare": "EpisodeOfCare/example",
     "basedOn": "ServiceRequest/myringotomy",
+    "reason.value.concept.text": "The patient seems to suffer from bilateral pneumonia and renal insufficiency, most likely due to chemotherapy.",  # noqa: E501
     "priority.code": "http://snomed.info/sct|394849002",
     "priority.text": "High priority",
     "subject": "Patient/f201",
@@ -168,7 +169,6 @@ ENCOUNTER_FLAT = {
     "serviceProvider": "Organization/2",
     "actualPeriod.start": datetime.date(2013, 3, 11),
     "actualPeriod.end": datetime.date(2013, 3, 20),
-    # "reason.value.concept.text": "The patient seems to suffer from bilateral pneumonia and renal insufficiency, most likely due to chemotherapy.",  # noqa: E501
     # diagnosis.condition: ["Condition/stroke", "Condition/f201"],
     # diagnosis.use.code: ["http://terminology.hl7.org/CodeSystem/diagnosis-role|AD", "http://terminology.hl7.org/CodeSystem/diagnosis-role|DD"],  # noqa: E501
     "admission.origin": "Location/2",

@@ -3,8 +3,6 @@ from pandas.testing import assert_frame_equal
 import os
 from fhirflat.resources.patient import Patient
 
-# Test Patient --------------------------------------------
-
 PATIENT_DICT_INPUT = {
     "id": "f001",
     "active": True,

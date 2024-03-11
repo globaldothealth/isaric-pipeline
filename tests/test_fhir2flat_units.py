@@ -25,6 +25,37 @@ def test_flatten_column(data, expected):
 
 
 @pytest.mark.parametrize(
+    "data_lists, expected",
+    [
+        (
+            (
+                {
+                    "reason": [
+                        [{"value": [{"concept": {"text": "bilateral pneumonia."}}]}]
+                    ],
+                },
+                ["reason"],
+            ),
+            {
+                "reason.value.concept.text": ["bilateral pneumonia."],
+            },
+        )
+    ],
+)
+def test_explode_and_flatten_no_multiples(data_lists, expected):
+    # Create a mock DataFrame
+    data, lists = data_lists
+    df = pd.DataFrame(data, index=[0])
+
+    # Call the function
+    result = f2f.explode_and_flatten(df, lists)
+
+    # Check the result
+    expected = pd.DataFrame(expected)
+    pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.mark.parametrize(
     "data, expected",
     [
         (
