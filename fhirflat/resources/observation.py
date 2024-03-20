@@ -1,6 +1,10 @@
 from __future__ import annotations
 from fhir.resources.observation import Observation as _Observation
+from fhir.resources.observation import ObservationComponent as _ObservationComponent
+
 from .base import FHIRFlatBase
+from .extensions import dateTimeExtension, phaseExtension
+from pydantic.v1 import Field
 import orjson
 
 from ..flat2fhir import expand_concepts
@@ -10,6 +14,42 @@ JsonString: TypeAlias = str
 
 
 class Observation(_Observation, FHIRFlatBase):
+
+    extension: phaseExtension = Field(
+        None,
+        alias="extension",
+        title="Additional content defined by implementations",
+        description=(
+            """
+            Contains the G.H 'eventPhase' extension, and allows extensions from other
+             implementations to be included."""
+        ),
+        # if property is element of this resource.
+        element_property=True,
+    )
+
+    effectiveDateTime__ext: dateTimeExtension = Field(
+        None,
+        alias="_effectiveDateTime",
+        title="Extension field for ``effectiveDateTime``.",
+    )
+
+    # Update component to include the dateTime extension
+    component: list[ObservationComponent] = Field(
+        None,
+        alias="component",
+        title="Component results",
+        description=(
+            "Some observations have multiple component observations.  These "
+            "component observations are expressed as separate code value pairs that"
+            " share the same attributes.  Examples include systolic and diastolic "
+            "component observations for blood pressure measurement and multiple "
+            "component observations for genetics observations."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+    )
+
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
         "id",
@@ -57,3 +97,15 @@ class Observation(_Observation, FHIRFlatBase):
                 data[field] = [data[field]]
 
         return cls(**data)
+
+
+class ObservationComponent(_ObservationComponent):
+    """
+    Adds the dateTime extension into the Observation.component class
+    """
+
+    valueDateTime__ext: dateTimeExtension = Field(
+        None,
+        alias="_effectiveDateTime",
+        title="Extension field for ``effectiveDateTime``.",
+    )
