@@ -282,6 +282,50 @@ class approximateDate(_DataType):
         ]
 
 
+class Duration(_DataType):
+
+    resource_type = Field("Duration", const=True)
+
+    url: fhirtypes.Uri = Field(
+        "duration",
+        alias="url",
+        title="identifies the meaning of the extension",
+        description=(
+            "Source of the definition for the extension code - a logical name or a "
+            "URL."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        element_required=True,
+    )
+
+    valueQuantity: fhirtypes.QuantityType = Field(
+        None,
+        alias="valueQuantity",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        element_required=True,
+    )
+
+    @classmethod
+    def elements_sequence(cls):
+        """returning all elements names from
+        ``Extension`` according specification,
+        with preserving original sequence order.
+        """
+        return [
+            "id",
+            "extension",
+            "url",
+            "valueQuantity",
+        ]
+
+
 # ------------------- extension types ------------------------------
 
 
@@ -405,5 +449,36 @@ class relativeTimingPhaseExtension(_FHIRPrimitiveExtension):
 
         if rel_phase_count > 1 or tim_phase_count > 1:
             raise ValueError("relativePhase and timingPhase can only appear once.")
+
+        return extensions
+
+
+class procedureExtension(_FHIRPrimitiveExtension):
+    """
+    Contains both the relative timing (pre-admission, during admission etc) and the
+    relative phase (number of days since admission for the start and end of an event)
+    extensions.
+    """
+
+    resource_type = Field("procedureExtension", const=True)
+
+    extension: list[Union[Duration, timingPhase, _Extension]] = Field(
+        None,
+        alias="extension",
+        title="List of `Extension` items (represented as `dict` in JSON)",
+        description="Additional content defined by implementations",
+        # if property is element of this resource.
+        element_property=True,
+        # this trys to match the type of the object to each of the union types
+        union_mode="smart",
+    )
+
+    @validator("extension")
+    def validate_extension_contents(cls, extensions):
+        duration_count = sum(isinstance(item, Duration) for item in extensions)
+        tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
+
+        if duration_count > 1 or tim_phase_count > 1:
+            raise ValueError("Duration and timingPhase can only appear once.")
 
         return extensions

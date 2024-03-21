@@ -1,6 +1,8 @@
 from __future__ import annotations
 from fhir.resources.procedure import Procedure as _Procedure
 from .base import FHIRFlatBase
+from .extensions import dateTimeExtension, procedureExtension, relativePhaseExtension
+from pydantic.v1 import Field
 import orjson
 
 from ..flat2fhir import expand_concepts
@@ -10,6 +12,32 @@ JsonString: TypeAlias = str
 
 
 class Procedure(_Procedure, FHIRFlatBase):
+
+    extension: procedureExtension = Field(
+        None,
+        alias="extension",
+        title="Additional content defined by implementations",
+        description=(
+            """
+            Contains the G.H 'timingPhase' and 'duration' extensions, and allows
+             extensions from other implementations to be included."""
+        ),
+        # if property is element of this resource.
+        element_property=True,
+    )
+
+    occurrenceDateTime__ext: dateTimeExtension = Field(
+        None,
+        alias="_occurrenceDateTime",
+        title="Extension field for ``occurrenceDateTime``.",
+    )
+
+    occurrencePeriod__ext: relativePhaseExtension = Field(
+        None,
+        alias="_occurrencePeriod",
+        title="Extension field for ``occurrencePeriod``.",
+    )
+
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
         "id",
