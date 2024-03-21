@@ -4,12 +4,28 @@ from .base import FHIRFlatBase
 import orjson
 
 from ..flat2fhir import expand_concepts
+from .extensions import relativeTimingPhaseExtension
+from pydantic.v1 import Field
 from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
 
 
 class Encounter(_Encounter, FHIRFlatBase):
+
+    extension: relativeTimingPhaseExtension = Field(
+        None,
+        alias="extension",
+        title="Additional content defined by implementations",
+        description=(
+            """
+            Contains the G.H 'eventTiming' and 'relativePhase' extensions, and allows
+             extensions from other implementations to be included.
+            """
+        ),
+        # if property is element of this resource.
+        element_property=True,
+    )
 
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
