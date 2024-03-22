@@ -5,8 +5,8 @@ from fhir.resources.fhirprimitiveextension import (
     FHIRPrimitiveExtension as _FHIRPrimitiveExtension,
 )
 from fhir.resources import fhirtypes
-from pydantic.v1 import Field, validator
-from typing import Union
+from pydantic.v1 import Field, validator, root_validator
+from typing import Union, Any
 
 # --------- extensions ------------------------------
 
@@ -15,18 +15,7 @@ class timingPhase(_DataType):
 
     resource_type = Field("timingPhase", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "timingPhase",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("timingPhase", const=True, alias="url")
 
     valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
         None,
@@ -59,18 +48,7 @@ class relativeDay(_DataType):
 
     resource_type = Field("relativeDayExtension", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "relativeDay",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("relativeDay", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -103,18 +81,7 @@ class relativeStart(_DataType):
 
     resource_type = Field("relativeStartExtension", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "start",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("start", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -147,18 +114,7 @@ class relativeEnd(_DataType):
 
     resource_type = Field("relativeEndExtension", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "end",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("end", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -191,18 +147,7 @@ class relativePhase(_DataType):
 
     resource_type = Field("relativePhase", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "relativePhase",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("relativePhase", const=True, alias="url")
 
     extension: list[Union[relativeStart, relativeEnd]] = Field(
         None,
@@ -242,18 +187,7 @@ class approximateDate(_DataType):
 
     resource_type = Field("approximateDateExtension", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "approximateDate",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("approximateDate", const=True, alias="url")
 
     valueDate: fhirtypes.Date = Field(
         None,
@@ -265,7 +199,24 @@ class approximateDate(_DataType):
         ),
         # if property is element of this resource.
         element_property=True,
-        element_required=True,
+        # Choice of Data Types. i.e value[x]
+        one_of_many="value",
+        one_of_many_required=True,
+    )
+
+    valueString: fhirtypes.String = Field(
+        None,
+        alias="valueString",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        # Choice of Data Types. i.e value[x]
+        one_of_many="value",
+        one_of_many_required=True,
     )
 
     @classmethod
@@ -274,30 +225,55 @@ class approximateDate(_DataType):
         ``Extension`` according specification,
         with preserving original sequence order.
         """
-        return [
-            "id",
-            "extension",
-            "url",
-            "valueDate",
-        ]
+        return ["id", "extension", "url", "valueDate", "valueString"]
+
+    @root_validator(pre=True, allow_reuse=True)
+    def validate_one_of_many_1136(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """https://www.hl7.org/fhir/formats.html#choice
+        A few elements have a choice of more than one data type for their content.
+        All such elements have a name that takes the form nnn[x].
+        The "nnn" part of the name is constant, and the "[x]" is replaced with
+        the title-cased name of the type that is actually used.
+        The table view shows each of these names explicitly.
+
+        Elements that have a choice of data type cannot repeat - they must have a
+        maximum cardinality of 1. When constructing an instance of an element with a
+        choice of types, the authoring system must create a single element with a
+        data type chosen from among the list of permitted data types.
+        """
+        one_of_many_fields = {
+            "value": [
+                "valueDate",
+                "valueString",
+            ]
+        }
+        for prefix, fields in one_of_many_fields.items():
+            assert cls.__fields__[fields[0]].field_info.extra["one_of_many"] == prefix
+            required = (
+                cls.__fields__[fields[0]].field_info.extra["one_of_many_required"]
+                is True
+            )
+            found = False
+            for field in fields:
+                if field in values and values[field] is not None:
+                    if found is True:
+                        raise ValueError(
+                            "Any of one field value is expected from "
+                            f"this list {fields}, but got multiple!"
+                        )
+                    else:
+                        found = True
+            if required is True and found is False:
+                raise ValueError(f"Expect any of field value from this list {fields}.")
+
+        return values
 
 
 class Duration(_DataType):
 
     resource_type = Field("Duration", const=True)
 
-    url: fhirtypes.Uri = Field(
-        "duration",
-        alias="url",
-        title="identifies the meaning of the extension",
-        description=(
-            "Source of the definition for the extension code - a logical name or a "
-            "URL."
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        element_required=True,
-    )
+    url = Field("duration", const=True, alias="url")
 
     valueQuantity: fhirtypes.QuantityType = Field(
         None,
