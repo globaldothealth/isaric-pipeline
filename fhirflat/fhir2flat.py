@@ -49,18 +49,51 @@ def explode_and_flatten(df, list_cols):
             df = flatten_column(df, lc)
     else:
         raise NotImplementedError("Can't handle lists with more than one concept yet")
+    # for lc in list_cols:
+    #     df = flatten_column(df, lc)
 
-    # check if any columns remain containing lists that aren't 'coding' chunks
+    # check if any cols remain containing lists that aren't 'coding' chunks or extension
     list_columns = df.map(lambda x: isinstance(x, list))
     new_list_cols = [
         col
         for col in df.columns
-        if (list_columns[col].any() and not col.endswith("coding"))
+        if (
+            list_columns[col].any()
+            and not col.endswith("coding")
+            and not col.endswith("extension")
+        )
     ]
     if new_list_cols:
         df = explode_and_flatten(df, new_list_cols)
 
     return df
+
+
+def implode(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Implodes a dataframe back to one row per resource instance.
+    """
+
+    def single_or_list(x):
+        if x.apply(lambda x: isinstance(x, list)).any():
+            x_unique = x.drop_duplicates()
+            if len(x_unique) == 1:
+                return x_unique
+            else:
+                return list(x)
+        else:
+            # Check if the column contains nan values
+            if x.isnull().any():
+                # If the column contains a single non-nan value, return it
+                non_nan_values = x.dropna()
+                if non_nan_values.nunique() == 1:
+                    return non_nan_values
+                else:
+                    return list(non_nan_values)
+            else:
+                return x.iat[0] if x.nunique() == 1 else list(x)
+
+    return df.groupby(df.index).agg(single_or_list)
 
 
 def expandCoding(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
@@ -147,6 +180,43 @@ def condenseSystem(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     return df
 
 
+def flattenExtensions(df: pd.DataFrame, extension: dict) -> pd.DataFrame:
+    """
+    Flattens extensions in a FHIR resource.
+
+    [
+     {"url": "relativeDay", "valueInteger": 2},
+     {"url":"approximateDate", "valueDate": "2012-09"}
+    ]
+    becomes
+    [2], [ "2012-09" ]
+
+    """
+
+    def redefine(row: pd.Series, extension: str) -> pd.Series:
+
+        ext = row[extension]
+
+        name = extension.removesuffix(".extension") + "." + ext["url"]
+        try:
+            value = ext[[key for key in ext if key.startswith("value")][0]]
+        except IndexError:
+            raise IndexError("Extension is nested, or does not contain a value.")
+
+        row[name] = value
+
+        return row
+
+    df_ext = df.explode(extension)
+
+    df_ext = df_ext.apply(lambda x: redefine(x, extension), axis=1)
+    df_ext.drop(columns=extension, inplace=True)
+
+    df_ext_single = implode(df_ext)
+
+    return df_ext_single
+
+
 def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame:
     """
     Converts a FHIR JSON file into a FHIRflat file.
@@ -171,6 +241,10 @@ def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame
     # condense all references
     for reference in df.columns[df.columns.str.endswith("reference")]:
         df = condenseReference(df, reference)
+
+    # condense all extensions
+    for ext in df.columns[df.columns.str.endswith("extension")]:
+        df = flattenExtensions(df, ext)
 
     # condense any remaining codes not wrapped in a "coding" block
     for col in df.columns[df.columns.str.endswith(".system")]:

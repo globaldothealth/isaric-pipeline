@@ -105,6 +105,12 @@ OBSERVATION_DICT_INPUT = {
     },
     "subject": {"reference": "Patient/example"},
     "effectiveDateTime": "2012-09-17",
+    "_effectiveDateTime": {
+        "extension": [
+            {"url": "relativeDay", "valueInteger": 2},
+            {"url": "approximateDate", "valueDate": "2012-09"},
+        ]
+    },
     "performer": [{"reference": "Practitioner/example"}],
     "interpretation": [
         {
@@ -134,6 +140,8 @@ OBSERVATION_FLAT = {
     "category.code": "http://terminology.hl7.org/CodeSystem/observation-category|vital-signs",  # noqa: E501
     "category.text": "Vital Signs",
     "effectiveDateTime": datetime.date(2012, 9, 17),
+    "_effectiveDateTime.relativeDay": 2.0,
+    "_effectiveDateTime.approximateDate": "2012-09",
     "performer": "Practitioner/example",
     "interpretation.code": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation|L",  # noqa: E501
     "interpretation.text": "Below low normal",
@@ -201,6 +209,7 @@ def test_observation_to_flat():
     assert_frame_equal(
         pd.read_parquet("test_observation.parquet"),
         pd.DataFrame(OBSERVATION_FLAT, index=[0]),
+        check_like=True,  # ignore column order
     )
     os.remove("test_observation.parquet")
 
