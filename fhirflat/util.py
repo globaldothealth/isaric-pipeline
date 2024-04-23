@@ -3,6 +3,8 @@ from itertools import groupby
 import fhir.resources as fr
 import re
 
+from .resources import extensions
+
 
 def group_keys(data_keys: list[str]) -> list[dict[str, list[str]]]:
     """
@@ -26,13 +28,27 @@ def get_fhirtype(t: str):
     Finds the relevent class from fhir.resources for a given string.
     """
 
-    try:
-        return getattr(getattr(fr, t.lower()), t)
-    except AttributeError:
-        file_words = re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", t)
-        file = "".join(file_words[:-1]).lower()
-
+    if "Extension" not in t:  # Doesn't cover the Datatype extension subtypes
         try:
-            return getattr(getattr(fr, file), t)
+            return getattr(getattr(fr, t.lower()), t)
         except AttributeError:
-            raise AttributeError(f"Could not find {t} in fhir.resources")
+            file_words = re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", t)
+            file = "".join(file_words[:-1]).lower()
+
+            try:
+                return getattr(getattr(fr, file), t)
+            except AttributeError:
+                raise AttributeError(f"Could not find {t} in fhir.resources")
+    else:
+        return get_local_extension_type(t)
+
+
+def get_local_extension_type(t: str):
+    """
+    Finds the relevent class from fhir.resources for a given string.
+    """
+
+    try:
+        return getattr(extensions, t)
+    except AttributeError:
+        raise AttributeError(f"Could not find {t} in fhirflat extensions")

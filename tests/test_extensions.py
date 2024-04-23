@@ -48,7 +48,7 @@ rel_day = {"url": "relativeDay", "valueInteger": 3}
 def test_relativeDay():
     relative_day = relativeDay(**rel_day)
     assert isinstance(relative_day, DataType)
-    assert relative_day.resource_type == "relativeDayExtension"
+    assert relative_day.resource_type == "relativeDay"
     assert relative_day.url == "relativeDay"
     assert type(relative_day.valueInteger) is int
 
@@ -59,7 +59,7 @@ start_date = {"url": "start", "valueInteger": 3}
 def test_relativeStart():
     relative_start = relativeStart(**start_date)
     assert isinstance(relative_start, DataType)
-    assert relative_start.resource_type == "relativeStartExtension"
+    assert relative_start.resource_type == "relativeStart"
     assert relative_start.url == "start"
     assert type(relative_start.valueInteger) is int
 
@@ -70,7 +70,7 @@ end_date = {"url": "end", "valueInteger": 5}
 def test_relativeEnd():
     relative_end = relativeEnd(**end_date)
     assert isinstance(relative_end, DataType)
-    assert relative_end.resource_type == "relativeEndExtension"
+    assert relative_end.resource_type == "relativeEnd"
     assert relative_end.url == "end"
     assert type(relative_end.valueInteger) is int
 
@@ -104,7 +104,7 @@ def test_relativePhase():
 def test_approximateDate(data, expected_type_date, expected_type_str):
     approximate_date = approximateDate(**data)
     assert isinstance(approximate_date, DataType)
-    assert approximate_date.resource_type == "approximateDateExtension"
+    assert approximate_date.resource_type == "approximateDate"
     assert approximate_date.url == "approximateDate"
     assert type(approximate_date.valueDate) is expected_type_date
     assert type(approximate_date.valueString) is expected_type_str

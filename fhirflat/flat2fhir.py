@@ -1,9 +1,12 @@
 # Converts FHIRflat files into FHIR resources
-from .util import group_keys, get_fhirtype
+from .util import group_keys, get_fhirtype, get_local_extension_type
 from fhir.resources.quantity import Quantity
 from fhir.resources.codeableconcept import CodeableConcept
 from fhir.resources.period import Period
+from fhir.resources.fhirprimitiveextension import FHIRPrimitiveExtension
 import fhir.resources as fr
+
+from pydantic.v1.error_wrappers import ValidationError
 
 
 def create_codeable_concept(
@@ -54,6 +57,32 @@ def createQuantity(df, group):
     return quant
 
 
+def createExtension(exts):
+    """
+    Searches through the schema of the extensions to find the correct datatype
+    """
+
+    extensions = []
+
+    extension_classes = {e: get_local_extension_type(e) for e in exts.keys()}
+
+    for e, v in exts.items():
+        properties = extension_classes[e].schema()["properties"]
+        data_options = [key for key in properties.keys() if key.startswith("value")]
+        if len(data_options) == 1:
+            extensions.append({"url": e, data_options[0]: v})
+        else:
+            for opt in data_options:
+                try:
+                    extension_classes[e](**{opt: v})
+                    extensions.append({"url": e, opt: v})
+                    break
+                except ValidationError:
+                    continue
+
+    return extensions
+
+
 def expand_concepts(
     data: dict, data_class: type[fr.domainresource.DomainResource]
 ) -> dict:
@@ -99,6 +128,12 @@ def expand_concepts(
         elif group_classes[k] == Period:
             v = {"start": data.get(k + ".start"), "end": data.get(k + ".end")}
             expanded[k] = v
+        elif issubclass(group_classes[k], FHIRPrimitiveExtension):
+            expanded[k] = {
+                "extension": createExtension(
+                    {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
+                ),
+            }
         else:
             expanded[k] = {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
 

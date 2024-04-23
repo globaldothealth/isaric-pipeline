@@ -1,5 +1,5 @@
 from __future__ import annotations
-from fhir.resources.extension import Extension as _Extension
+
 from fhir.resources.datatype import DataType as _DataType
 from fhir.resources.fhirprimitiveextension import (
     FHIRPrimitiveExtension as _FHIRPrimitiveExtension,
@@ -7,6 +7,8 @@ from fhir.resources.fhirprimitiveextension import (
 from fhir.resources import fhirtypes
 from pydantic.v1 import Field, validator, root_validator
 from typing import Union, Any
+
+from . import extension_types as et
 
 # --------- extensions ------------------------------
 
@@ -46,7 +48,7 @@ class timingPhase(_DataType):
 
 class relativeDay(_DataType):
 
-    resource_type = Field("relativeDayExtension", const=True)
+    resource_type = Field("relativeDay", const=True)
 
     url = Field("relativeDay", const=True, alias="url")
 
@@ -79,7 +81,7 @@ class relativeDay(_DataType):
 
 class relativeStart(_DataType):
 
-    resource_type = Field("relativeStartExtension", const=True)
+    resource_type = Field("relativeStart", const=True)
 
     url = Field("start", const=True, alias="url")
 
@@ -112,7 +114,7 @@ class relativeStart(_DataType):
 
 class relativeEnd(_DataType):
 
-    resource_type = Field("relativeEndExtension", const=True)
+    resource_type = Field("relativeEnd", const=True)
 
     url = Field("end", const=True, alias="url")
 
@@ -149,7 +151,7 @@ class relativePhase(_DataType):
 
     url = Field("relativePhase", const=True, alias="url")
 
-    extension: list[Union[relativeStart, relativeEnd]] = Field(
+    extension: list[Union[et.relativeStartType, et.relativeEndType]] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",
@@ -185,7 +187,7 @@ class relativePhase(_DataType):
 
 class approximateDate(_DataType):
 
-    resource_type = Field("approximateDateExtension", const=True)
+    resource_type = Field("approximateDate", const=True)
 
     url = Field("approximateDate", const=True, alias="url")
 
@@ -314,7 +316,9 @@ class dateTimeExtension(_FHIRPrimitiveExtension):
 
     resource_type = Field("dateTimeExtension", const=True)
 
-    extension: list[Union[approximateDate, relativeDay, _Extension]] = Field(
+    extension: list[
+        Union[et.approximateDateType, et.relativeDayType, fhirtypes.ExtensionType]
+    ] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",
@@ -347,7 +351,7 @@ class timingPhaseExtension(_FHIRPrimitiveExtension):
 
     resource_type = Field("timingPhaseExtension", const=True)
 
-    extension: list[Union[timingPhase, _Extension]] = Field(
+    extension: list[Union[et.timingPhaseType, fhirtypes.ExtensionType]] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",
@@ -377,7 +381,7 @@ class relativePhaseExtension(_FHIRPrimitiveExtension):
 
     resource_type = Field("relativePhaseExtension", const=True)
 
-    extension: list[Union[relativePhase, _Extension]] = Field(
+    extension: list[Union[et.relativePhaseType, fhirtypes.ExtensionType]] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",
@@ -407,7 +411,9 @@ class relativeTimingPhaseExtension(_FHIRPrimitiveExtension):
 
     resource_type = Field("relativeTimingPhaseExtension", const=True)
 
-    extension: list[Union[relativePhase, timingPhase, _Extension]] = Field(
+    extension: list[
+        Union[et.relativePhaseType, et.timingPhaseType, fhirtypes.ExtensionType]
+    ] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",
@@ -438,7 +444,9 @@ class procedureExtension(_FHIRPrimitiveExtension):
 
     resource_type = Field("procedureExtension", const=True)
 
-    extension: list[Union[Duration, timingPhase, _Extension]] = Field(
+    extension: list[
+        Union[et.durationType, et.timingPhaseType, fhirtypes.ExtensionType]
+    ] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",

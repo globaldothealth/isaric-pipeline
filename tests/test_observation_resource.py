@@ -177,6 +177,12 @@ OBSERVATION_DICT_OUT = {
     },
     "subject": {"reference": "Patient/example"},
     "effectiveDateTime": "2012-09-17T00:00:00",
+    "_effectiveDateTime": {
+        "extension": [
+            {"url": "approximateDate", "valueDate": "2012-09"},
+            {"url": "relativeDay", "valueInteger": 2},
+        ]
+    },
     "performer": [{"reference": "Practitioner/example"}],
     "interpretation": [
         {

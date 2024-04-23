@@ -66,6 +66,7 @@ class FHIRFlatBase(DomainResource):
         df["json_data"] = df.apply(
             lambda row: row.to_json(date_format="iso", date_unit="s"), axis=1
         )
+        # Creates a columns of FHIR resource instances
         df["fhir"] = df["json_data"].apply(lambda x: cls.cleanup(x))
 
         if len(df) == 1:
