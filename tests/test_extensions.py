@@ -14,11 +14,9 @@ from fhirflat.resources.extensions import (
     approximateDate,
     Duration,
     dateTimeExtension,
-    timingPhaseExtension,
     relativePhaseExtension,
-    relativeTimingPhaseExtension,
-    procedureExtension,
 )
+from pydantic.v1.error_wrappers import ValidationError
 
 timing_phase_data = {
     "url": "timingPhase",
@@ -135,20 +133,6 @@ def test_dateTimeExtension():
     )
 
 
-time_phase = {"extension": [timing_phase_data]}
-
-
-def test_timingPhaseExtension():
-    timing_phase_extension = timingPhaseExtension(**time_phase)
-    assert isinstance(timing_phase_extension, FHIRPrimitiveExtension)
-    assert timing_phase_extension.resource_type == "timingPhaseExtension"
-    assert isinstance(timing_phase_extension.extension, list)
-    assert all(
-        isinstance(ext, (timingPhase, Extension))
-        for ext in timing_phase_extension.extension
-    )
-
-
 rel_phase = {"extension": [relative_phase_data]}
 
 
@@ -160,34 +144,6 @@ def test_relativePhaseExtension():
     assert all(
         isinstance(ext, (relativePhase, Extension))
         for ext in relative_phase_extension.extension
-    )
-
-
-rel_time_phase = {"extension": [relative_phase_data, timing_phase_data]}
-
-
-def test_relativeTimingPhaseExtension():
-    relative_phase_extension = relativeTimingPhaseExtension(**rel_time_phase)
-    assert isinstance(relative_phase_extension, FHIRPrimitiveExtension)
-    assert relative_phase_extension.resource_type == "relativeTimingPhaseExtension"
-    assert isinstance(relative_phase_extension.extension, list)
-    assert all(
-        isinstance(ext, (relativePhase, timingPhase, Extension))
-        for ext in relative_phase_extension.extension
-    )
-
-
-proc = {"extension": [dur, timing_phase_data]}
-
-
-def test_procedureExtension():
-    procedure_extension = procedureExtension(**proc)
-    assert isinstance(procedure_extension, FHIRPrimitiveExtension)
-    assert procedure_extension.resource_type == "procedureExtension"
-    assert isinstance(procedure_extension.extension, list)
-    assert all(
-        isinstance(ext, (timingPhase, Duration, Extension))
-        for ext in procedure_extension.extension
     )
 
 
@@ -206,3 +162,25 @@ def test_procedureExtension():
 def test_extension_name_error(ext_class, data):
     with pytest.raises(ValueError):
         ext_class(**data)
+
+
+@pytest.mark.parametrize(
+    "ext_class, data",
+    [
+        (timingPhase, {"valueQuantity": {}}),
+        (relativeDay, {"valueFloat": 2.5}),
+        (relativeStart, {"valueInteger": "startdate"}),
+        (relativeEnd, {"valueFloat": 2.5}),
+        (relativePhase, {"valueFloat": 2.5}),
+        # not date format
+        (approximateDate, {"valueDate": "month 3"}),
+        # can't have both
+        (approximateDate, {"valueDate": "2021-09", "valueString": "month 3"}),
+        (Duration, {"valuePeriod": "middle"}),
+        (dateTimeExtension, {"extension": [{"valueDate": "month 3"}]}),
+        (relativePhaseExtension, {"extension": [{"valueDate": "month 3"}]}),
+    ],
+)
+def test_extension_validation_error(ext_class, data):
+    with pytest.raises(ValidationError):
+        ext_class(**data)(**data)

@@ -3,12 +3,14 @@ from fhir.resources.observation import Observation as _Observation
 from fhir.resources.observation import ObservationComponent as _ObservationComponent
 
 from .base import FHIRFlatBase
-from .extension_types import dateTimeExtensionType, timingPhaseExtensionType
-from pydantic.v1 import Field
+from .extension_types import dateTimeExtensionType, timingPhaseType
+from .extensions import timingPhase
+from pydantic.v1 import Field, validator
 import orjson
+from fhir.resources import fhirtypes
 
 from ..flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+from typing import TypeAlias, ClassVar, Union
 
 JsonString: TypeAlias = str
 
@@ -27,10 +29,10 @@ class ObservationComponent(_ObservationComponent):
 
 class Observation(_Observation, FHIRFlatBase):
 
-    extension: timingPhaseExtensionType = Field(
+    extension: list[Union[timingPhaseType, fhirtypes.ExtensionType]] = Field(
         None,
         alias="extension",
-        title="Additional content defined by implementations",
+        title="List of `Extension` items (represented as `dict` in JSON)",
         description=(
             """
             Contains the G.H 'eventPhase' extension, and allows extensions from other
@@ -38,6 +40,8 @@ class Observation(_Observation, FHIRFlatBase):
         ),
         # if property is element of this resource.
         element_property=True,
+        # this trys to match the type of the object to each of the union types
+        union_mode="smart",
     )
 
     effectiveDateTime__ext: dateTimeExtensionType = Field(
@@ -77,6 +81,15 @@ class Observation(_Observation, FHIRFlatBase):
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+
+    @validator("extension")
+    def validate_extension_contents(cls, extensions):
+        phase_count = sum(isinstance(item, timingPhase) for item in extensions)
+
+        if phase_count > 1:
+            raise ValueError("timingPhase can only appear once.")
+
+        return extensions
 
     @classmethod
     def cleanup(cls, data: JsonString) -> Observation:

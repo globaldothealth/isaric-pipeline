@@ -24,6 +24,12 @@ IMMUNIZATION_DICT_INPUT = {
     "patient": {"reference": "Patient/example"},
     "encounter": {"reference": "Encounter/example"},
     "occurrenceDateTime": "2021-09-12",
+    "_occurrenceDateTime": {
+        "extension": [
+            {"url": "approximateDate", "valueString": "month 3"},
+            {"url": "relativeDay", "valueInteger": 3},
+        ]
+    },
     "primarySource": True,
     "location": {"reference": "Location/1"},
     "site": {
@@ -84,6 +90,8 @@ IMMUNIZATION_DICT_INPUT = {
 IMMUNIZATION_FLAT = {
     "resourceType": "Immunization",
     "occurrenceDateTime": datetime.date(2021, 9, 12),
+    "_occurrenceDateTime.relativeDay": 3.0,
+    "_occurrenceDateTime.approximateDate": "month 3",
     "reason.reference": "Observation/example",
     "isSubpotent": False,
     "reaction.date": datetime.date(2021, 9, 12),
@@ -119,6 +127,12 @@ IMMUNIZATION_DICT_OUT = {
     "patient": {"reference": "Patient/example"},
     "encounter": {"reference": "Encounter/example"},
     "occurrenceDateTime": "2021-09-12T00:00:00",
+    "_occurrenceDateTime": {
+        "extension": [
+            {"url": "approximateDate", "valueString": "month 3"},
+            {"url": "relativeDay", "valueInteger": 3},
+        ]
+    },
     "location": {"reference": "Location/1"},
     "site": {
         "coding": [
@@ -161,6 +175,7 @@ def test_immunization_to_flat():
         pd.DataFrame(IMMUNIZATION_FLAT, index=[0]),
         # Date types are off otherwise, pyarrow uses pytz and pandas uses dateutil
         check_dtype=False,
+        check_like=True,  # ignore column order
     )
     os.remove("test_immunization.parquet")
 

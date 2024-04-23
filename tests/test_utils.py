@@ -5,6 +5,8 @@ from fhir.resources.quantity import Quantity
 from fhir.resources.codeableconcept import CodeableConcept
 from fhir.resources.medicationstatement import MedicationStatementAdherence
 
+from fhirflat.resources.extensions import dateTimeExtension
+
 
 def test_group_keys():
     data = [
@@ -39,8 +41,14 @@ def test_group_keys():
         ("Quantity", Quantity),
         ("CodeableConcept", CodeableConcept),
         ("MedicationStatementAdherence", MedicationStatementAdherence),
+        ("dateTimeExtension", dateTimeExtension),
     ],
 )
 def test_get_fhirtype(input, expected):
     result = get_fhirtype(input)
     assert result == expected
+
+
+def test_get_fhirtype_raises():
+    with pytest.raises(AttributeError):
+        get_fhirtype("NotARealType")

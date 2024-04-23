@@ -145,6 +145,8 @@ class relativeEnd(_DataType):
         ]
 
 
+# Should this not be a FHIRextension like down the bottom? (copy the 'Period' or 'Range'
+# datatype)
 class relativePhase(_DataType):
 
     resource_type = Field("relativePhase", const=True)
@@ -342,36 +344,6 @@ class dateTimeExtension(_FHIRPrimitiveExtension):
         return extensions
 
 
-class timingPhaseExtension(_FHIRPrimitiveExtension):
-    """
-    A G.Health specific extension to the FHIR dateTime type
-    Allows dates to be specified as either approximate, and/or number of days relative
-    to the current date.
-    """
-
-    resource_type = Field("timingPhaseExtension", const=True)
-
-    extension: list[Union[et.timingPhaseType, fhirtypes.ExtensionType]] = Field(
-        None,
-        alias="extension",
-        title="List of `Extension` items (represented as `dict` in JSON)",
-        description="Additional content defined by implementations",
-        # if property is element of this resource.
-        element_property=True,
-        # this trys to match the type of the object to each of the union types
-        union_mode="smart",
-    )
-
-    @validator("extension")
-    def validate_extension_contents(cls, extensions):
-        phase_count = sum(isinstance(item, timingPhase) for item in extensions)
-
-        if phase_count > 1:
-            raise ValueError("timingPhase can only appear once.")
-
-        return extensions
-
-
 class relativePhaseExtension(_FHIRPrimitiveExtension):
     """
     A G.Health specific extension to the FHIR dateTime type
@@ -398,71 +370,5 @@ class relativePhaseExtension(_FHIRPrimitiveExtension):
 
         if phase_count > 1:
             raise ValueError("relativePhase can only appear once.")
-
-        return extensions
-
-
-class relativeTimingPhaseExtension(_FHIRPrimitiveExtension):
-    """
-    Contains both the relative timing (pre-admission, during admission etc) and the
-    relative phase (number of days since admission for the start and end of an event)
-    extensions.
-    """
-
-    resource_type = Field("relativeTimingPhaseExtension", const=True)
-
-    extension: list[
-        Union[et.relativePhaseType, et.timingPhaseType, fhirtypes.ExtensionType]
-    ] = Field(
-        None,
-        alias="extension",
-        title="List of `Extension` items (represented as `dict` in JSON)",
-        description="Additional content defined by implementations",
-        # if property is element of this resource.
-        element_property=True,
-        # this trys to match the type of the object to each of the union types
-        union_mode="smart",
-    )
-
-    @validator("extension")
-    def validate_extension_contents(cls, extensions):
-        rel_phase_count = sum(isinstance(item, relativePhase) for item in extensions)
-        tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
-
-        if rel_phase_count > 1 or tim_phase_count > 1:
-            raise ValueError("relativePhase and timingPhase can only appear once.")
-
-        return extensions
-
-
-class procedureExtension(_FHIRPrimitiveExtension):
-    """
-    Contains both the relative timing (pre-admission, during admission etc) and the
-    relative phase (number of days since admission for the start and end of an event)
-    extensions.
-    """
-
-    resource_type = Field("procedureExtension", const=True)
-
-    extension: list[
-        Union[et.durationType, et.timingPhaseType, fhirtypes.ExtensionType]
-    ] = Field(
-        None,
-        alias="extension",
-        title="List of `Extension` items (represented as `dict` in JSON)",
-        description="Additional content defined by implementations",
-        # if property is element of this resource.
-        element_property=True,
-        # this trys to match the type of the object to each of the union types
-        union_mode="smart",
-    )
-
-    @validator("extension")
-    def validate_extension_contents(cls, extensions):
-        duration_count = sum(isinstance(item, Duration) for item in extensions)
-        tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
-
-        if duration_count > 1 or tim_phase_count > 1:
-            raise ValueError("Duration and timingPhase can only appear once.")
 
         return extensions

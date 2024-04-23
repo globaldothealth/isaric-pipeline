@@ -61,10 +61,7 @@ class Validators:
             "approximateDate": (None, ".extensions"),
             "Duration": (None, ".extensions"),
             "dateTimeExtension": (None, ".extensions"),
-            "timingPhaseExtension": (None, ".extensions"),
-            "relativePhaseExtension": (None, ".extensions"),
-            "relativeTimingPhaseExtension": (None, ".extensions"),
-            "procedureExtension": (None, ".extensions"),
+            "relativePeriod": (None, ".extensions"),
         }
 
     def get_fhir_model_class(self, model_name: str) -> Type[FHIRAbstractModel]:
@@ -225,19 +222,5 @@ def datetimeextension_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel
     return Validators().fhir_model_validator("dateTimeExtension", v)
 
 
-def timingphaseextension_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
-    return Validators().fhir_model_validator("timingPhaseExtension", v)
-
-
-def relativephaseextension_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
-    return Validators().fhir_model_validator("relativePhaseExtension", v)
-
-
-def relativetimingphaseextension_validator(
-    v: Union[StrBytes, dict, Path, FHIRAbstractModel]
-):
-    return Validators().fhir_model_validator("relativeTimingPhaseExtension", v)
-
-
-def procedureextension_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
-    return Validators().fhir_model_validator("procedureExtension", v)
+def relativeperiod_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
+    return Validators().fhir_model_validator("relativePeriod", v)

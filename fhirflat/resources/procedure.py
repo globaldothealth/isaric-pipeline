@@ -1,38 +1,51 @@
 from __future__ import annotations
 from fhir.resources.procedure import Procedure as _Procedure
 from .base import FHIRFlatBase
-from .extensions import dateTimeExtension, procedureExtension, relativePhaseExtension
-from pydantic.v1 import Field
+
+from .extension_types import (
+    dateTimeExtensionType,
+    relativePhaseExtensionType,
+    durationType,
+    timingPhaseType,
+)
+
+from .extensions import Duration, timingPhase
+
+from pydantic.v1 import Field, validator
 import orjson
 
 from ..flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+from typing import TypeAlias, ClassVar, Union
+from fhir.resources import fhirtypes
 
 JsonString: TypeAlias = str
 
 
 class Procedure(_Procedure, FHIRFlatBase):
 
-    extension: procedureExtension = Field(
-        None,
-        alias="extension",
-        title="Additional content defined by implementations",
-        description=(
-            """
+    extension: list[Union[durationType, timingPhaseType, fhirtypes.ExtensionType]] = (
+        Field(
+            None,
+            alias="extension",
+            title="Additional content defined by implementations",
+            description=(
+                """
             Contains the G.H 'timingPhase' and 'duration' extensions, and allows
              extensions from other implementations to be included."""
-        ),
-        # if property is element of this resource.
-        element_property=True,
+            ),
+            # if property is element of this resource.
+            element_property=True,
+            union_mode="smart",
+        )
     )
 
-    occurrenceDateTime__ext: dateTimeExtension = Field(
+    occurrenceDateTime__ext: dateTimeExtensionType = Field(
         None,
         alias="_occurrenceDateTime",
         title="Extension field for ``occurrenceDateTime``.",
     )
 
-    occurrencePeriod__ext: relativePhaseExtension = Field(
+    occurrencePeriod__ext: relativePhaseExtensionType = Field(
         None,
         alias="_occurrencePeriod",
         title="Extension field for ``occurrencePeriod``.",
@@ -57,6 +70,16 @@ class Procedure(_Procedure, FHIRFlatBase):
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+
+    @validator("extension")
+    def validate_extension_contents(cls, extensions):
+        duration_count = sum(isinstance(item, Duration) for item in extensions)
+        tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
+
+        if duration_count > 1 or tim_phase_count > 1:
+            raise ValueError("Duration and timingPhase can only appear once.")
+
+        return extensions
 
     @classmethod
     def cleanup(cls, data: JsonString) -> Procedure:

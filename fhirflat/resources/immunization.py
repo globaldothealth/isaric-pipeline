@@ -1,22 +1,24 @@
 from __future__ import annotations
 from fhir.resources.immunization import Immunization as _Immunization
 from .base import FHIRFlatBase
-from .extensions import dateTimeExtension, timingPhaseExtension
-from pydantic.v1 import Field
+from .extensions import timingPhase
+from .extension_types import timingPhaseType, dateTimeExtensionType
+from pydantic.v1 import Field, validator
 import orjson
 
 from ..flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+from typing import TypeAlias, ClassVar, Union
+from fhir.resources import fhirtypes
 
 JsonString: TypeAlias = str
 
 
 class Immunization(_Immunization, FHIRFlatBase):
 
-    extension: timingPhaseExtension = Field(
+    extension: list[Union[timingPhaseType, fhirtypes.ExtensionType]] = Field(
         None,
         alias="extension",
-        title="Additional content defined by implementations",
+        title="List of `Extension` items (represented as `dict` in JSON)",
         description=(
             """
             Contains the G.H 'eventPhase' extension, and allows extensions from other
@@ -24,9 +26,11 @@ class Immunization(_Immunization, FHIRFlatBase):
         ),
         # if property is element of this resource.
         element_property=True,
+        # this trys to match the type of the object to each of the union types
+        union_mode="smart",
     )
 
-    occurrenceDateTime__ext: dateTimeExtension = Field(
+    occurrenceDateTime__ext: dateTimeExtensionType = Field(
         None,
         alias="_occurrenceDateTime",
         title="Extension field for ``occurrenceDateTime``.",
@@ -50,6 +54,15 @@ class Immunization(_Immunization, FHIRFlatBase):
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+
+    @validator("extension")
+    def validate_extension_contents(cls, extensions):
+        phase_count = sum(isinstance(item, timingPhase) for item in extensions)
+
+        if phase_count > 1:
+            raise ValueError("timingPhase can only appear once.")
+
+        return extensions
 
     @classmethod
     def cleanup(cls, data: JsonString) -> Immunization:

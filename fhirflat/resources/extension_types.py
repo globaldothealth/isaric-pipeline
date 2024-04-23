@@ -47,17 +47,5 @@ class dateTimeExtensionType(AbstractType):
     __resource_type__ = "dateTimeExtension"
 
 
-class timingPhaseExtensionType(AbstractType):
-    __resource_type__ = "timingPhaseExtension"
-
-
-class relativePhaseExtensionType(AbstractType):
-    __resource_type__ = "relativePhaseExtension"
-
-
-class relativeTimingPhaseExtensionType(AbstractType):
-    __resource_type__ = "relativeTimingPhaseExtension"
-
-
-class procedureExtensionType(AbstractType):
-    __resource_type__ = "procedureExtension"
+class relativePeriodType(AbstractType):
+    __resource_type__ = "relativePeriod"
