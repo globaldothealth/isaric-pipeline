@@ -9,6 +9,27 @@ ENCOUNTER_DICT_INPUT = {
     "id": "f203",
     "identifier": [{"use": "temp", "value": "Encounter_Roel_20130311"}],
     "status": "completed",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+        {
+            "url": "relativePhase",
+            "extension": [
+                {"url": "start", "valueInteger": 2},
+                {"url": "end", "valueInteger": 5},
+            ],
+        },
+    ],
     "class": [
         {
             "coding": [
@@ -155,6 +176,10 @@ ENCOUNTER_DICT_INPUT = {
 
 ENCOUNTER_FLAT = {
     "resourceType": "Encounter",
+    "extension.timingPhase.code": "http://snomed.info/sct|278307001",
+    "extension.timingPhase.text": "on admission",
+    "extension.relativePhase.start": 2,
+    "extension.relativePhase.end": 5,
     "class.code": "http://terminology.hl7.org/CodeSystem/v3-ActCode|IMP",
     "class.text": "inpatient encounter",
     "type.code": "http://snomed.info/sct|183807002",
@@ -182,6 +207,27 @@ ENCOUNTER_FLAT = {
 ENCOUNTER_DICT_OUT = {
     "resourceType": "Encounter",
     "status": "completed",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+        {
+            "url": "relativePhase",
+            "extension": [
+                {"url": "start", "valueInteger": 2},
+                {"url": "end", "valueInteger": 5},
+            ],
+        },
+    ],
     "class": [
         {
             "coding": [
@@ -246,6 +292,7 @@ def test_encounter_to_flat():
         pd.DataFrame(ENCOUNTER_FLAT, index=[0]),
         # Date types are off otherwise, pyarrow uses pytz and pandas uses dateutil
         check_dtype=False,
+        check_like=True,  # ignore column order
     )
     os.remove("test_encounter.parquet")
 

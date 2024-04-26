@@ -28,7 +28,7 @@ def get_fhirtype(t: str):
     Finds the relevent class from fhir.resources for a given string.
     """
 
-    if "Extension" not in t:  # Doesn't cover the Datatype extension subtypes
+    if not hasattr(extensions, t):
         try:
             return getattr(getattr(fr, t.lower()), t)
         except AttributeError:

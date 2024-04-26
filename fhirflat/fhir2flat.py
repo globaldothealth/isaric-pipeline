@@ -11,29 +11,37 @@ if TYPE_CHECKING:
     from .resources.base import FHIRFlatBase
 
 
-def flatten_column(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+def flatten_column(
+    data: pd.DataFrame | pd.Series, column_name: str
+) -> pd.DataFrame | pd.Series:
     """
-    Takes a column of a dataframe containing dictionaries and flattens it into multiple
-    columns.
+    Takes a column of a dataframe or series containing dictionaries and flattens it
+    into multiple columns.
     """
 
-    i = df.columns.get_loc(column_name)
-
-    expanded_col = pd.json_normalize(df[column_name])
+    expanded_col: pd.DataFrame = pd.json_normalize(data[column_name])
     expanded_col.columns = [
         column_name + "." + str(col) for col in expanded_col.columns
     ]
-    df = df.drop(column_name, axis=1)
 
-    new_df = pd.concat([df.iloc[:, :i], expanded_col, df.iloc[:, i:]], axis=1)
-
-    return new_df
+    if isinstance(data, pd.DataFrame):
+        i = data.columns.get_loc(column_name)
+        data = data.drop(column_name, axis=1)
+        new_data = pd.concat([data.iloc[:, :i], expanded_col, data.iloc[:, i:]], axis=1)
+        return new_data
+    elif isinstance(data, pd.Series):
+        data = data.drop(column_name)
+        new_data = pd.concat([data, expanded_col.iloc[0]], axis=0)
+        return new_data
+    else:
+        raise ValueError("Input data must be a pandas DataFrame or Series.")
 
 
 def explode_and_flatten(df, list_cols):
     """
     Recursively explodes and flattens a dataframe.
-    Columns containing a 'coding' list are left intact for later processing.
+    Columns containing a 'coding' or 'extension' list are left intact for later
+    processing.
 
     df: flattened fhir resource
     lists: list of columns containing lists in the dataframe
@@ -79,6 +87,8 @@ def implode(df: pd.DataFrame) -> pd.DataFrame:
             x_unique = x.drop_duplicates()
             if len(x_unique) == 1:
                 return x_unique
+            elif len(x_unique.dropna()) == 1:
+                return x_unique.dropna()
             else:
                 return list(x)
         else:
@@ -180,7 +190,7 @@ def condenseSystem(df: pd.DataFrame, col_name: str) -> pd.DataFrame:
     return df
 
 
-def flattenExtensions(df: pd.DataFrame, extension: dict) -> pd.DataFrame:
+def flattenExtensions(df: pd.DataFrame, extension: str) -> pd.DataFrame:
     """
     Flattens extensions in a FHIR resource.
 
@@ -193,24 +203,54 @@ def flattenExtensions(df: pd.DataFrame, extension: dict) -> pd.DataFrame:
 
     """
 
-    def redefine(row: pd.Series, extension: str) -> pd.Series:
+    def expand_and_redefine(df, extension):
 
-        ext = row[extension]
+        def redefine(row: pd.Series, extension: str) -> pd.Series:
+            """Expands out simple extensions and leaves complex ones as is.
+            To be dealt with later in the pipeline."""
 
-        name = extension.removesuffix(".extension") + "." + ext["url"]
-        try:
-            value = ext[[key for key in ext if key.startswith("value")][0]]
-        except IndexError:
-            raise IndexError("Extension is nested, or does not contain a value.")
+            ext = row[extension]
 
-        row[name] = value
+            name = extension.removesuffix(".extension") + "." + ext["url"]
 
-        return row
+            if "extension" in ext.keys():
+                row[extension] = ext["extension"]
+                row.rename({extension: name}, inplace=True)
+                row = expand_and_redefine(row, name)
 
-    df_ext = df.explode(extension)
+            if isinstance(row, pd.DataFrame):
+                row = implode(row)
+                assert len(row) == 1
+                return row.iloc[0]
 
-    df_ext = df_ext.apply(lambda x: redefine(x, extension), axis=1)
-    df_ext.drop(columns=extension, inplace=True)
+            try:
+                # The fixed index will probably cause issues
+                value = ext[[key for key in ext if key.startswith("value")][0]]
+            except IndexError:
+                raise IndexError("Extension does not contain a single value.")
+
+            row[name] = value
+
+            if type(row[name]) is dict or issubclass(type(row[name]), dict):
+                row = flatten_column(row, name)
+
+            return row
+
+        if isinstance(df, pd.DataFrame):
+            df_ext = df.explode(extension)
+
+        elif isinstance(df, pd.Series):
+            # convert to dataframe, transpose then explode
+            df_ext = df.to_frame().T.explode(extension)
+
+        df_ext = df_ext.apply(lambda x: redefine(x, extension), axis=1)
+        df_ext.drop(
+            columns=extension, inplace=True, errors="ignore"
+        )  # will stay silent if column doesn't exist
+
+        return df_ext
+
+    df_ext = expand_and_redefine(df, extension)
 
     df_ext_single = implode(df_ext)
 
@@ -234,6 +274,10 @@ def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame
         if list_cols:
             df = explode_and_flatten(df, list_cols)
 
+    # condense all extensions
+    for ext in df.columns[df.columns.str.endswith("extension")]:
+        df = flattenExtensions(df, ext)
+
     # expand all instances of the "coding" list
     for coding in df.columns[df.columns.str.endswith("coding")]:
         df = expandCoding(df, coding)
@@ -241,10 +285,6 @@ def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame
     # condense all references
     for reference in df.columns[df.columns.str.endswith("reference")]:
         df = condenseReference(df, reference)
-
-    # condense all extensions
-    for ext in df.columns[df.columns.str.endswith("extension")]:
-        df = flattenExtensions(df, ext)
 
     # condense any remaining codes not wrapped in a "coding" block
     for col in df.columns[df.columns.str.endswith(".system")]:

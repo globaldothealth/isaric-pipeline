@@ -14,6 +14,20 @@ IMMUNIZATION_DICT_INPUT = {
         }
     ],
     "status": "completed",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+    ],
     "vaccineCode": {
         "coding": [{"system": "http://hl7.org/fhir/sid/cvx", "code": "175"}],
         "text": "Rabies - IM Diploid cell culture",
@@ -89,6 +103,8 @@ IMMUNIZATION_DICT_INPUT = {
 
 IMMUNIZATION_FLAT = {
     "resourceType": "Immunization",
+    "extension.timingPhase.code": "http://snomed.info/sct|278307001",
+    "extension.timingPhase.text": "on admission",
     "occurrenceDateTime": datetime.date(2021, 9, 12),
     "_occurrenceDateTime.relativeDay": 3.0,
     "_occurrenceDateTime.approximateDate": "month 3",
@@ -114,6 +130,20 @@ IMMUNIZATION_FLAT = {
 IMMUNIZATION_DICT_OUT = {
     "resourceType": "Immunization",
     "status": "completed",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+    ],
     "vaccineCode": {
         "coding": [
             {

@@ -9,6 +9,22 @@ PROCEDURE_DICT_INPUT = {
     "id": "f201",
     "instantiatesCanonical": ["http://example.org/fhir/PlanDefinition/KDN5"],
     "status": "completed",
+    "extension": [
+        {"url": "duration", "valueQuantity": {"value": 1, "unit": "d"}},
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [{"system": "timing.com", "code": "1234"}]
+            },
+        },
+        {
+            "url": "relativePhase",
+            "extension": [
+                {"url": "start", "valueInteger": 2},
+                {"url": "end", "valueInteger": 5},
+            ],
+        },
+    ],
     "code": {
         "coding": [
             {
@@ -27,6 +43,12 @@ PROCEDURE_DICT_INPUT = {
         "start": "2013-01-28T13:31:00+01:00",
         "end": "2013-01-28T14:27:00+01:00",
     },
+    # "_occurrenceDateTime": {
+    #     "extension": [
+    #         {"url": "approximateDate", "valueString": "month 3"},
+    #         {"url": "relativeDay", "valueInteger": 3},
+    #     ]
+    # },
     "performer": [
         {
             "function": {
@@ -57,6 +79,12 @@ PROCEDURE_DICT_INPUT = {
 
 PROCEDURE_FLAT = {
     "resourceType": "Procedure",
+    "extension.duration.value": 1,
+    "extension.duration.unit": "d",
+    "extension.timingPhase.code": "timing.com|1234",
+    "extension.timingPhase.text": None,
+    "extension.relativePhase.start": 2,
+    "extension.relativePhase.end": 5,
     "bodySite.code": "http://snomed.info/sct|272676008",
     "bodySite.text": "Sphenoid bone",
     "code.code": "http://snomed.info/sct|367336001",
@@ -74,6 +102,22 @@ PROCEDURE_FLAT = {
 PROCEDURE_DICT_OUT = {
     "resourceType": "Procedure",
     "status": "completed",
+    "extension": [
+        {"url": "duration", "valueQuantity": {"value": 1, "unit": "d"}},
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [{"system": "timing.com", "code": "1234"}]
+            },
+        },
+        {
+            "url": "relativePhase",
+            "extension": [
+                {"url": "start", "valueInteger": 2},
+                {"url": "end", "valueInteger": 5},
+            ],
+        },
+    ],
     "code": {
         "coding": [
             {
@@ -113,11 +157,12 @@ def test_procedure_to_flat():
         pd.DataFrame(PROCEDURE_FLAT, index=[0]),
         # Date types are off otherwise, pyarrow uses pytz and pandas uses dateutil
         check_dtype=False,
+        check_like=True,  # ignore column order
     )
     os.remove("test_procedure.parquet")
 
 
-def test_observation_from_flat():
+def test_procedure_from_flat():
     chemo = Procedure(**PROCEDURE_DICT_OUT)
 
     flat_chemo = Procedure.from_flat("tests/data/procedure_flat.parquet")

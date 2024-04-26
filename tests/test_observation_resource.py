@@ -82,6 +82,20 @@ import datetime
 OBSERVATION_DICT_INPUT = {
     "resourceType": "Observation",
     "status": "final",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+    ],
     "category": [
         {
             "coding": [
@@ -142,6 +156,8 @@ OBSERVATION_FLAT = {
     "effectiveDateTime": datetime.date(2012, 9, 17),
     "_effectiveDateTime.relativeDay": 2.0,
     "_effectiveDateTime.approximateDate": "2012-09",
+    "extension.timingPhase.code": "http://snomed.info/sct|278307001",
+    "extension.timingPhase.text": "on admission",
     "performer": "Practitioner/example",
     "interpretation.code": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation|L",  # noqa: E501
     "interpretation.text": "Below low normal",
@@ -155,6 +171,20 @@ OBSERVATION_FLAT = {
 OBSERVATION_DICT_OUT = {
     "resourceType": "Observation",
     "status": "final",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+    ],
     "category": [
         {
             "coding": [
