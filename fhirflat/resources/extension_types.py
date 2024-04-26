@@ -45,7 +45,3 @@ class durationType(AbstractType):
 
 class dateTimeExtensionType(AbstractType):
     __resource_type__ = "dateTimeExtension"
-
-
-class relativePeriodType(AbstractType):
-    __resource_type__ = "relativePeriod"

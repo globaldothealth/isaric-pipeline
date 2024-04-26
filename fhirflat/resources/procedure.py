@@ -4,12 +4,12 @@ from .base import FHIRFlatBase
 
 from .extension_types import (
     dateTimeExtensionType,
-    relativePhaseExtensionType,
+    relativePhaseType,
     durationType,
     timingPhaseType,
 )
 
-from .extensions import Duration, timingPhase
+from .extensions import Duration, timingPhase, relativePhase
 
 from pydantic.v1 import Field, validator
 import orjson
@@ -23,32 +23,26 @@ JsonString: TypeAlias = str
 
 class Procedure(_Procedure, FHIRFlatBase):
 
-    extension: list[Union[durationType, timingPhaseType, fhirtypes.ExtensionType]] = (
-        Field(
-            None,
-            alias="extension",
-            title="Additional content defined by implementations",
-            description=(
-                """
-            Contains the G.H 'timingPhase' and 'duration' extensions, and allows
-             extensions from other implementations to be included."""
-            ),
-            # if property is element of this resource.
-            element_property=True,
-            union_mode="smart",
-        )
+    extension: list[
+        Union[durationType, timingPhaseType, relativePhaseType, fhirtypes.ExtensionType]
+    ] = Field(
+        None,
+        alias="extension",
+        title="Additional content defined by implementations",
+        description=(
+            """
+            Contains the G.H 'timingPhase', 'relativePhase' and 'duration' extensions,
+            and allows extensions from other implementations to be included."""
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        union_mode="smart",
     )
 
     occurrenceDateTime__ext: dateTimeExtensionType = Field(
         None,
         alias="_occurrenceDateTime",
         title="Extension field for ``occurrenceDateTime``.",
-    )
-
-    occurrencePeriod__ext: relativePhaseExtensionType = Field(
-        None,
-        alias="_occurrencePeriod",
-        title="Extension field for ``occurrencePeriod``.",
     )
 
     # attributes to exclude from the flat representation
@@ -75,9 +69,12 @@ class Procedure(_Procedure, FHIRFlatBase):
     def validate_extension_contents(cls, extensions):
         duration_count = sum(isinstance(item, Duration) for item in extensions)
         tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
+        rel_phase_count = sum(isinstance(item, relativePhase) for item in extensions)
 
-        if duration_count > 1 or tim_phase_count > 1:
-            raise ValueError("Duration and timingPhase can only appear once.")
+        if duration_count > 1 or tim_phase_count > 1 or rel_phase_count > 1:
+            raise ValueError(
+                "Duration, timingPhase and relativePhase can only appear once."
+            )
 
         return extensions
 

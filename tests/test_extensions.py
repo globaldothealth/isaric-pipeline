@@ -14,7 +14,6 @@ from fhirflat.resources.extensions import (
     approximateDate,
     Duration,
     dateTimeExtension,
-    relativePhaseExtension,
 )
 from pydantic.v1.error_wrappers import ValidationError
 
@@ -133,20 +132,6 @@ def test_dateTimeExtension():
     )
 
 
-rel_phase = {"extension": [relative_phase_data]}
-
-
-def test_relativePhaseExtension():
-    relative_phase_extension = relativePhaseExtension(**rel_phase)
-    assert isinstance(relative_phase_extension, FHIRPrimitiveExtension)
-    assert relative_phase_extension.resource_type == "relativePhaseExtension"
-    assert isinstance(relative_phase_extension.extension, list)
-    assert all(
-        isinstance(ext, (relativePhase, Extension))
-        for ext in relative_phase_extension.extension
-    )
-
-
 @pytest.mark.parametrize(
     "ext_class, data",
     [
@@ -178,7 +163,6 @@ def test_extension_name_error(ext_class, data):
         (approximateDate, {"valueDate": "2021-09", "valueString": "month 3"}),
         (Duration, {"valuePeriod": "middle"}),
         (dateTimeExtension, {"extension": [{"valueDate": "month 3"}]}),
-        (relativePhaseExtension, {"extension": [{"valueDate": "month 3"}]}),
     ],
 )
 def test_extension_validation_error(ext_class, data):
