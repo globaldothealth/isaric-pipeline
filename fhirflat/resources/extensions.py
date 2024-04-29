@@ -83,7 +83,7 @@ class relativeStart(_DataType):
 
     resource_type = Field("relativeStart", const=True)
 
-    url = Field("start", const=True, alias="url")
+    url = Field("relativeStart", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -116,7 +116,7 @@ class relativeEnd(_DataType):
 
     resource_type = Field("relativeEnd", const=True)
 
-    url = Field("end", const=True, alias="url")
+    url = Field("relativeEnd", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -145,11 +145,11 @@ class relativeEnd(_DataType):
         ]
 
 
-class relativePhase(_DataType):
+class relativePeriod(_DataType):
 
-    resource_type = Field("relativePhase", const=True)
+    resource_type = Field("relativePeriod", const=True)
 
-    url = Field("relativePhase", const=True, alias="url")
+    url = Field("relativePeriod", const=True, alias="url")
 
     extension: list[Union[et.relativeStartType, et.relativeEndType]] = Field(
         None,
@@ -275,7 +275,7 @@ class Duration(_DataType):
 
     resource_type = Field("Duration", const=True)
 
-    url = Field("duration", const=True, alias="url")
+    url = Field("Duration", const=True, alias="url")
 
     valueQuantity: fhirtypes.QuantityType = Field(
         None,

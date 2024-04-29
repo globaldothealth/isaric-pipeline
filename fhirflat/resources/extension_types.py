@@ -31,8 +31,8 @@ class relativeEndType(AbstractType):
     __resource_type__ = "relativeEnd"
 
 
-class relativePhaseType(AbstractType):
-    __resource_type__ = "relativePhase"
+class relativePeriodType(AbstractType):
+    __resource_type__ = "relativePeriod"
 
 
 class approximateDateType(AbstractType):

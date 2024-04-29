@@ -23,10 +23,10 @@ ENCOUNTER_DICT_INPUT = {
             },
         },
         {
-            "url": "relativePhase",
+            "url": "relativePeriod",
             "extension": [
-                {"url": "start", "valueInteger": 2},
-                {"url": "end", "valueInteger": 5},
+                {"url": "relativeStart", "valueInteger": 2},
+                {"url": "relativeEnd", "valueInteger": 5},
             ],
         },
     ],
@@ -178,8 +178,8 @@ ENCOUNTER_FLAT = {
     "resourceType": "Encounter",
     "extension.timingPhase.code": "http://snomed.info/sct|278307001",
     "extension.timingPhase.text": "on admission",
-    "extension.relativePhase.start": 2,
-    "extension.relativePhase.end": 5,
+    "extension.relativePeriod.relativeStart": 2,
+    "extension.relativePeriod.relativeEnd": 5,
     "class.code": "http://terminology.hl7.org/CodeSystem/v3-ActCode|IMP",
     "class.text": "inpatient encounter",
     "type.code": "http://snomed.info/sct|183807002",
@@ -209,6 +209,13 @@ ENCOUNTER_DICT_OUT = {
     "status": "completed",
     "extension": [
         {
+            "url": "relativePeriod",
+            "extension": [
+                {"url": "relativeEnd", "valueInteger": 5},
+                {"url": "relativeStart", "valueInteger": 2},
+            ],
+        },
+        {
             "url": "timingPhase",
             "valueCodeableConcept": {
                 "coding": [
@@ -219,13 +226,6 @@ ENCOUNTER_DICT_OUT = {
                     }
                 ]
             },
-        },
-        {
-            "url": "relativePhase",
-            "extension": [
-                {"url": "start", "valueInteger": 2},
-                {"url": "end", "valueInteger": 5},
-            ],
         },
     ],
     "class": [
@@ -265,6 +265,17 @@ ENCOUNTER_DICT_OUT = {
     "partOf": {"reference": "Encounter/f203"},
     "serviceProvider": {"reference": "Organization/2"},
     "actualPeriod": {"start": "2013-03-11T00:00:00", "end": "2013-03-20T00:00:00"},
+    "reason": [
+        {
+            "value": [
+                {
+                    "concept": {
+                        "text": "The patient seems to suffer from bilateral pneumonia and renal insufficiency, most likely due to chemotherapy."  # noqa: E501
+                    }
+                }
+            ]
+        }
+    ],
     "admission": {
         "origin": {"reference": "Location/2"},
         "admitSource": {

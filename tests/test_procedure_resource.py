@@ -10,7 +10,7 @@ PROCEDURE_DICT_INPUT = {
     "instantiatesCanonical": ["http://example.org/fhir/PlanDefinition/KDN5"],
     "status": "completed",
     "extension": [
-        {"url": "duration", "valueQuantity": {"value": 1, "unit": "d"}},
+        {"url": "Duration", "valueQuantity": {"value": 1, "unit": "d"}},
         {
             "url": "timingPhase",
             "valueCodeableConcept": {
@@ -18,10 +18,10 @@ PROCEDURE_DICT_INPUT = {
             },
         },
         {
-            "url": "relativePhase",
+            "url": "relativePeriod",
             "extension": [
-                {"url": "start", "valueInteger": 2},
-                {"url": "end", "valueInteger": 5},
+                {"url": "relativeStart", "valueInteger": 2},
+                {"url": "relativeEnd", "valueInteger": 5},
             ],
         },
     ],
@@ -79,12 +79,12 @@ PROCEDURE_DICT_INPUT = {
 
 PROCEDURE_FLAT = {
     "resourceType": "Procedure",
-    "extension.duration.value": 1,
-    "extension.duration.unit": "d",
+    "extension.Duration.value": 1,
+    "extension.Duration.unit": "d",
     "extension.timingPhase.code": "timing.com|1234",
     "extension.timingPhase.text": None,
-    "extension.relativePhase.start": 2,
-    "extension.relativePhase.end": 5,
+    "extension.relativePeriod.relativeStart": 2,
+    "extension.relativePeriod.relativeEnd": 5,
     "bodySite.code": "http://snomed.info/sct|272676008",
     "bodySite.text": "Sphenoid bone",
     "code.code": "http://snomed.info/sct|367336001",
@@ -103,19 +103,19 @@ PROCEDURE_DICT_OUT = {
     "resourceType": "Procedure",
     "status": "completed",
     "extension": [
-        {"url": "duration", "valueQuantity": {"value": 1, "unit": "d"}},
+        {"url": "Duration", "valueQuantity": {"value": 1.0, "unit": "d"}},
+        {
+            "url": "relativePeriod",
+            "extension": [
+                {"url": "relativeEnd", "valueInteger": 5},
+                {"url": "relativeStart", "valueInteger": 2},
+            ],
+        },
         {
             "url": "timingPhase",
             "valueCodeableConcept": {
                 "coding": [{"system": "timing.com", "code": "1234"}]
             },
-        },
-        {
-            "url": "relativePhase",
-            "extension": [
-                {"url": "start", "valueInteger": 2},
-                {"url": "end", "valueInteger": 5},
-            ],
         },
     ],
     "code": {

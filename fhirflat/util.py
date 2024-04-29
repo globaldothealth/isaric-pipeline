@@ -1,7 +1,8 @@
 # Utility functions for FHIRflat
 from itertools import groupby
-import fhir.resources as fr
+import fhir.resources
 import re
+import importlib
 
 from .resources import extensions
 
@@ -23,22 +24,31 @@ def group_keys(data_keys: list[str]) -> list[dict[str, list[str]]]:
     return groups
 
 
-def get_fhirtype(t: str):
+def get_fhirtype(t: str | list[str]):
     """
     Finds the relevent class from fhir.resources for a given string.
     """
 
+    if isinstance(t, list):
+        return [get_fhirtype(x) for x in t]
+
     if not hasattr(extensions, t):
         try:
-            return getattr(getattr(fr, t.lower()), t)
+            return getattr(getattr(fhir.resources, t.lower()), t)
         except AttributeError:
             file_words = re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))", t)
             file = "".join(file_words[:-1]).lower()
 
             try:
-                return getattr(getattr(fr, file), t)
+                return getattr(getattr(fhir.resources, file), t)
             except AttributeError:
-                raise AttributeError(f"Could not find {t} in fhir.resources")
+                try:
+                    module = importlib.import_module(f"fhir.resources.{t.lower()}")
+                    return getattr(module, t)
+                except ImportError or ModuleNotFoundError:
+                    # Handle the case where the module does not exist.
+                    raise AttributeError(f"Could not find {t} in fhir.resources")
+
     else:
         return get_local_extension_type(t)
 

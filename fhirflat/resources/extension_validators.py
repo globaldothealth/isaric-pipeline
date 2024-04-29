@@ -57,7 +57,7 @@ class Validators:
             "relativeDay": (None, ".extensions"),
             "relativeStart": (None, ".extensions"),
             "relativeEnd": (None, ".extensions"),
-            "relativePhase": (None, ".extensions"),
+            "relativePeriod": (None, ".extensions"),
             "approximateDate": (None, ".extensions"),
             "Duration": (None, ".extensions"),
             "dateTimeExtension": (None, ".extensions"),
@@ -205,8 +205,8 @@ def relativeend_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
     return Validators().fhir_model_validator("relativeEnd", v)
 
 
-def relativephase_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
-    return Validators().fhir_model_validator("relativePhase", v)
+def relativeperiod_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
+    return Validators().fhir_model_validator("relativePeriod", v)
 
 
 def approximatedate_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):

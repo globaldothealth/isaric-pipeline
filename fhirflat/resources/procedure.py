@@ -4,12 +4,12 @@ from .base import FHIRFlatBase
 
 from .extension_types import (
     dateTimeExtensionType,
-    relativePhaseType,
+    relativePeriodType,
     durationType,
     timingPhaseType,
 )
 
-from .extensions import Duration, timingPhase, relativePhase
+from .extensions import Duration, timingPhase, relativePeriod
 
 from pydantic.v1 import Field, validator
 import orjson
@@ -24,14 +24,16 @@ JsonString: TypeAlias = str
 class Procedure(_Procedure, FHIRFlatBase):
 
     extension: list[
-        Union[durationType, timingPhaseType, relativePhaseType, fhirtypes.ExtensionType]
+        Union[
+            durationType, timingPhaseType, relativePeriodType, fhirtypes.ExtensionType
+        ]
     ] = Field(
         None,
         alias="extension",
         title="Additional content defined by implementations",
         description=(
             """
-            Contains the G.H 'timingPhase', 'relativePhase' and 'duration' extensions,
+            Contains the G.H 'timingPhase', 'relativePeriod' and 'Duration' extensions,
             and allows extensions from other implementations to be included."""
         ),
         # if property is element of this resource.
@@ -69,11 +71,11 @@ class Procedure(_Procedure, FHIRFlatBase):
     def validate_extension_contents(cls, extensions):
         duration_count = sum(isinstance(item, Duration) for item in extensions)
         tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
-        rel_phase_count = sum(isinstance(item, relativePhase) for item in extensions)
+        rel_phase_count = sum(isinstance(item, relativePeriod) for item in extensions)
 
         if duration_count > 1 or tim_phase_count > 1 or rel_phase_count > 1:
             raise ValueError(
-                "Duration, timingPhase and relativePhase can only appear once."
+                "Duration, timingPhase and relativePeriod can only appear once."
             )
 
         return extensions

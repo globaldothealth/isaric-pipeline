@@ -5,8 +5,8 @@ import orjson
 
 from ..flat2fhir import expand_concepts
 
-from .extensions import relativePhase, timingPhase
-from .extension_types import relativePhaseType, timingPhaseType
+from .extensions import relativePeriod, timingPhase
+from .extension_types import relativePeriodType, timingPhaseType
 from pydantic.v1 import Field, validator
 from typing import TypeAlias, ClassVar, Union
 from fhir.resources import fhirtypes
@@ -17,14 +17,14 @@ JsonString: TypeAlias = str
 class Encounter(_Encounter, FHIRFlatBase):
 
     extension: list[
-        Union[relativePhaseType, timingPhaseType, fhirtypes.ExtensionType]
+        Union[relativePeriodType, timingPhaseType, fhirtypes.ExtensionType]
     ] = Field(
         None,
         alias="extension",
         title="List of `Extension` items (represented as `dict` in JSON)",
         description=(
             """
-            Contains the G.H 'eventTiming' and 'relativePhase' extensions, and allows
+            Contains the G.H 'eventTiming' and 'relativePeriod' extensions, and allows
              extensions from other implementations to be included.
             """
         ),
@@ -51,11 +51,11 @@ class Encounter(_Encounter, FHIRFlatBase):
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):
-        rel_phase_count = sum(isinstance(item, relativePhase) for item in extensions)
+        rel_phase_count = sum(isinstance(item, relativePeriod) for item in extensions)
         tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
 
         if rel_phase_count > 1 or tim_phase_count > 1:
-            raise ValueError("relativePhase and timingPhase can only appear once.")
+            raise ValueError("relativePeriod and timingPhase can only appear once.")
 
         return extensions
 

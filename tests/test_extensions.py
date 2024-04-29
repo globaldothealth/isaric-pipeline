@@ -10,7 +10,7 @@ from fhirflat.resources.extensions import (
     relativeDay,
     relativeStart,
     relativeEnd,
-    relativePhase,
+    relativePeriod,
     approximateDate,
     Duration,
     dateTimeExtension,
@@ -50,36 +50,36 @@ def test_relativeDay():
     assert type(relative_day.valueInteger) is int
 
 
-start_date = {"url": "start", "valueInteger": 3}
+start_date = {"url": "relativeStart", "valueInteger": 3}
 
 
 def test_relativeStart():
     relative_start = relativeStart(**start_date)
     assert isinstance(relative_start, DataType)
     assert relative_start.resource_type == "relativeStart"
-    assert relative_start.url == "start"
+    assert relative_start.url == "relativeStart"
     assert type(relative_start.valueInteger) is int
 
 
-end_date = {"url": "end", "valueInteger": 5}
+end_date = {"url": "relativeEnd", "valueInteger": 5}
 
 
 def test_relativeEnd():
     relative_end = relativeEnd(**end_date)
     assert isinstance(relative_end, DataType)
     assert relative_end.resource_type == "relativeEnd"
-    assert relative_end.url == "end"
+    assert relative_end.url == "relativeEnd"
     assert type(relative_end.valueInteger) is int
 
 
-relative_phase_data = {"url": "relativePhase", "extension": [start_date, end_date]}
+relative_phase_data = {"url": "relativePeriod", "extension": [start_date, end_date]}
 
 
-def test_relativePhase():
-    relative_phase = relativePhase(**relative_phase_data)
+def test_relativePeriod():
+    relative_phase = relativePeriod(**relative_phase_data)
     assert isinstance(relative_phase, DataType)
-    assert relative_phase.resource_type == "relativePhase"
-    assert relative_phase.url == "relativePhase"
+    assert relative_phase.resource_type == "relativePeriod"
+    assert relative_phase.url == "relativePeriod"
     assert isinstance(relative_phase.extension, list)
     assert all(
         isinstance(ext, (relativeStart, relativeEnd))
@@ -107,14 +107,14 @@ def test_approximateDate(data, expected_type_date, expected_type_str):
     assert type(approximate_date.valueString) is expected_type_str
 
 
-dur = {"url": "duration", "valueQuantity": {"value": 3, "unit": "days"}}
+dur = {"url": "Duration", "valueQuantity": {"value": 3, "unit": "days"}}
 
 
 def test_Duration():
     duration = Duration(**dur)
     assert isinstance(duration, DataType)
     assert duration.resource_type == "Duration"
-    assert duration.url == "duration"
+    assert duration.url == "Duration"
     assert type(duration.valueQuantity) is _Quantity
 
 
@@ -139,7 +139,7 @@ def test_dateTimeExtension():
         (relativeDay, {"url": "day"}),
         (relativeStart, {"url": "startdate"}),
         (relativeEnd, {"url": "enddate"}),
-        (relativePhase, {"url": "phase"}),
+        (relativePeriod, {"url": "phase"}),
         (approximateDate, {"url": "approx"}),
         (Duration, {"url": "dur"}),
     ],
@@ -156,7 +156,7 @@ def test_extension_name_error(ext_class, data):
         (relativeDay, {"valueFloat": 2.5}),
         (relativeStart, {"valueInteger": "startdate"}),
         (relativeEnd, {"valueFloat": 2.5}),
-        (relativePhase, {"valueFloat": 2.5}),
+        (relativePeriod, {"valueFloat": 2.5}),
         # not date format
         (approximateDate, {"valueDate": "month 3"}),
         # can't have both
