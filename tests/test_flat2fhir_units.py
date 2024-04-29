@@ -60,6 +60,15 @@ from fhir.resources.encounter import Encounter
                 ]
             },
         ),
+        (
+            (
+                {"concept.text": ["Test"]},
+                "concept",
+            ),
+            {
+                "text": "Test",
+            },
+        ),
     ],
 )
 def test_create_codeable_concept(data_groups, expected):

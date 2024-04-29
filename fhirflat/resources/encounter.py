@@ -4,12 +4,35 @@ from .base import FHIRFlatBase
 import orjson
 
 from ..flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+
+from .extensions import relativePeriod, timingPhase
+from .extension_types import relativePeriodType, timingPhaseType
+from pydantic.v1 import Field, validator
+from typing import TypeAlias, ClassVar, Union
+from fhir.resources import fhirtypes
 
 JsonString: TypeAlias = str
 
 
 class Encounter(_Encounter, FHIRFlatBase):
+
+    extension: list[
+        Union[relativePeriodType, timingPhaseType, fhirtypes.ExtensionType]
+    ] = Field(
+        None,
+        alias="extension",
+        title="List of `Extension` items (represented as `dict` in JSON)",
+        description=(
+            """
+            Contains the G.H 'eventTiming' and 'relativePeriod' extensions, and allows
+             extensions from other implementations to be included.
+            """
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        # this trys to match the type of the object to each of the union types
+        union_mode="smart",
+    )
 
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
@@ -25,6 +48,16 @@ class Encounter(_Encounter, FHIRFlatBase):
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+
+    @validator("extension")
+    def validate_extension_contents(cls, extensions):
+        rel_phase_count = sum(isinstance(item, relativePeriod) for item in extensions)
+        tim_phase_count = sum(isinstance(item, timingPhase) for item in extensions)
+
+        if rel_phase_count > 1 or tim_phase_count > 1:
+            raise ValueError("relativePeriod and timingPhase can only appear once.")
+
+        return extensions
 
     @classmethod
     def cleanup(cls, data: JsonString) -> Encounter:

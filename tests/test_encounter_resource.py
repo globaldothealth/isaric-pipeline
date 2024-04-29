@@ -9,6 +9,27 @@ ENCOUNTER_DICT_INPUT = {
     "id": "f203",
     "identifier": [{"use": "temp", "value": "Encounter_Roel_20130311"}],
     "status": "completed",
+    "extension": [
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+        {
+            "url": "relativePeriod",
+            "extension": [
+                {"url": "relativeStart", "valueInteger": 2},
+                {"url": "relativeEnd", "valueInteger": 5},
+            ],
+        },
+    ],
     "class": [
         {
             "coding": [
@@ -155,6 +176,10 @@ ENCOUNTER_DICT_INPUT = {
 
 ENCOUNTER_FLAT = {
     "resourceType": "Encounter",
+    "extension.timingPhase.code": "http://snomed.info/sct|278307001",
+    "extension.timingPhase.text": "on admission",
+    "extension.relativePeriod.relativeStart": 2,
+    "extension.relativePeriod.relativeEnd": 5,
     "class.code": "http://terminology.hl7.org/CodeSystem/v3-ActCode|IMP",
     "class.text": "inpatient encounter",
     "type.code": "http://snomed.info/sct|183807002",
@@ -182,6 +207,27 @@ ENCOUNTER_FLAT = {
 ENCOUNTER_DICT_OUT = {
     "resourceType": "Encounter",
     "status": "completed",
+    "extension": [
+        {
+            "url": "relativePeriod",
+            "extension": [
+                {"url": "relativeEnd", "valueInteger": 5},
+                {"url": "relativeStart", "valueInteger": 2},
+            ],
+        },
+        {
+            "url": "timingPhase",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": 278307001,
+                        "display": "on admission",
+                    }
+                ]
+            },
+        },
+    ],
     "class": [
         {
             "coding": [
@@ -219,6 +265,17 @@ ENCOUNTER_DICT_OUT = {
     "partOf": {"reference": "Encounter/f203"},
     "serviceProvider": {"reference": "Organization/2"},
     "actualPeriod": {"start": "2013-03-11T00:00:00", "end": "2013-03-20T00:00:00"},
+    "reason": [
+        {
+            "value": [
+                {
+                    "concept": {
+                        "text": "The patient seems to suffer from bilateral pneumonia and renal insufficiency, most likely due to chemotherapy."  # noqa: E501
+                    }
+                }
+            ]
+        }
+    ],
     "admission": {
         "origin": {"reference": "Location/2"},
         "admitSource": {
@@ -246,6 +303,7 @@ def test_encounter_to_flat():
         pd.DataFrame(ENCOUNTER_FLAT, index=[0]),
         # Date types are off otherwise, pyarrow uses pytz and pandas uses dateutil
         check_dtype=False,
+        check_like=True,  # ignore column order
     )
     os.remove("test_encounter.parquet")
 
