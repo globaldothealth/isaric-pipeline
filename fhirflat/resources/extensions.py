@@ -14,6 +14,14 @@ from . import extension_types as et
 
 
 class timingPhase(_DataType):
+    """
+    An ISARIC extension collecting data on the phase of admission an event occurred.
+    This is typically one of:
+    - Pre-admission
+    - Admission (i.e. during the hospital stay)
+    - Follow-up
+    with an appropriate SNOMED (or similar) code.
+    """
 
     resource_type = Field("timingPhase", const=True)
 
@@ -47,6 +55,11 @@ class timingPhase(_DataType):
 
 
 class relativeDay(_DataType):
+    """
+    An ISARIC extension recording the day an event occurred relative to the admission
+    date. For a resources such as Encounter or Procedure, use relativePeriod to record
+    both the relative start and end dates instead.
+    """
 
     resource_type = Field("relativeDay", const=True)
 
@@ -80,6 +93,9 @@ class relativeDay(_DataType):
 
 
 class relativeStart(_DataType):
+    """
+    An ISARIC extension for use inside the complex `relativePeriod` extension.
+    """
 
     resource_type = Field("relativeStart", const=True)
 
@@ -113,6 +129,9 @@ class relativeStart(_DataType):
 
 
 class relativeEnd(_DataType):
+    """
+    An ISARIC extension for use inside the complex `relativePeriod` extension.
+    """
 
     resource_type = Field("relativeEnd", const=True)
 
@@ -146,6 +165,14 @@ class relativeEnd(_DataType):
 
 
 class relativePeriod(_DataType):
+    """
+    An ISARIC extension recording the start and end dates an event occurred relative to
+    the admission date.
+
+    E.g. a an Encounter that starts on the 1st of Jan, the same day as admission, and
+    ends on the 5th, would have a relativePeriod extension where relativeStart is 1 and
+    relativeEnd is 5.
+    """
 
     resource_type = Field("relativePeriod", const=True)
 
@@ -186,6 +213,13 @@ class relativePeriod(_DataType):
 
 
 class approximateDate(_DataType):
+    """
+    An ISARIC extension for recording the approximate date (if the true date is unknown)
+    or timeframe of an event.
+
+    E.g. a Follow-up encounter that occured 3 months after admission would have an
+    approximateDate extension with a valueString of "3 months".
+    """
 
     resource_type = Field("approximateDate", const=True)
 
@@ -272,6 +306,10 @@ class approximateDate(_DataType):
 
 
 class Duration(_DataType):
+    """
+    An ISARIC extension for recording the length of an event (e.g. 5 days) where
+    duration is not an option in the base FHIR specification.
+    """
 
     resource_type = Field("Duration", const=True)
 
