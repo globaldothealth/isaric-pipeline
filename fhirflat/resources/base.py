@@ -3,6 +3,7 @@ from __future__ import annotations
 from fhir.resources.domainresource import DomainResource
 
 import pandas as pd
+import orjson
 
 from ..fhir2flat import fhir2flat
 from typing import TypeAlias, ClassVar
@@ -53,8 +54,6 @@ class FHIRFlatBase(DomainResource):
 
         file: str
             Path to the parquet FHIRflat file containing patient data
-        cleanup: callable
-            Function to clean up the data before populating the resource
 
         Returns
         -------
@@ -73,6 +72,31 @@ class FHIRFlatBase(DomainResource):
             return df["fhir"].iloc[0]
         else:
             return list(df["fhir"])
+
+    @classmethod
+    def fhir_bulk_import(cls, file: str) -> list[FHIRFlatBase]:
+        """
+        Takes a ndjson file containing FHIR resources as json strings and returns a
+        list of populated FHIR resources.
+
+        file: str
+            Path to the .ndjson file containing FHIR data
+
+        Returns
+        -------
+        FHIRFlatBase or list[FHIRFlatBase]
+        """
+
+        resources = []
+        with open(file, "r") as f:
+            for line in f:
+                data = orjson.loads(line)
+                resources.append(cls(**data))
+
+        if len(resources) == 1:
+            return resources[0]
+        else:
+            return resources
 
     def to_flat(self, filename: str) -> None:
         """

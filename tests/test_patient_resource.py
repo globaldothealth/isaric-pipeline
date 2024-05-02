@@ -47,3 +47,9 @@ def test_multi_patient_from_flat():
     assert len(patients) == 2
 
     assert patients[0] == Patient(**PATIENT_DICT_OUT)
+
+
+def test_bulk_fhir_import_patient():
+    patients = Patient.fhir_bulk_import("tests/data/patient.ndjson")
+
+    assert len(patients) == 3
