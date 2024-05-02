@@ -46,24 +46,23 @@ def explode_and_flatten(df, list_cols: list[str]):
     df: flattened fhir resource
     lists: list of columns containing lists in the dataframe
     """
-    try:
-        df = df.explode(list_cols)
-    except ValueError:
 
-        list_lengths = [len(df[x][0]) for x in list_cols]
-        long_list_cols = [x for x, y in zip(list_cols, list_lengths) if y > 1]
-        list_cols = [x for x in list_cols if x not in long_list_cols]
-        df = df.explode(list_cols)
+    list_lengths = [len(df[x][0]) for x in list_cols]
+    long_list_cols = [x for x, y in zip(list_cols, list_lengths) if y > 1]
+
+    if long_list_cols:
         df.rename(columns={x: x + "_dense" for x in long_list_cols}, inplace=True)
+        list_cols = [x for x in list_cols if x not in long_list_cols]
 
-    if len(df) == 1:
-        # only one concept in each list
-        for lc in list_cols:
-            df = flatten_column(df, lc)
-    else:
-        raise NotImplementedError("Can't handle lists with more than one concept yet")
+    df = df.explode(list_cols)
 
-    # check if any cols remain containing lists that aren't 'coding' chunks or extension
+    assert len(df) == 1, "List with more than one concept has slipped through."
+
+    for lc in list_cols:
+        df = flatten_column(df, lc)
+
+    # check if any cols remain containing lists that aren't 'coding' chunks, extension
+    # or dense columns (lists of nested data we don't want to explode)
     list_columns = df.map(lambda x: isinstance(x, list))
     new_list_cols = [
         col
@@ -274,7 +273,8 @@ def fhir2flat(resource: FHIRFlatBase, lists: list | None = None) -> pd.DataFrame
     df = pd.json_normalize(resource.dict())
 
     if lists:
-        list_cols = [n for n in lists if n in df.columns]
+        # extensions are dealt with seperately while still in a list
+        list_cols = [n for n in lists if n in df.columns if n != "extension"]
         if list_cols:
             df = explode_and_flatten(df, list_cols)
 
