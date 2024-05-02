@@ -10,17 +10,6 @@ SUBJECT_DICT_INPUT = {
     "identifier": [{"value": "ecsr45"}],
     "status": "active",
     "progress": [
-        # {
-        #     "type": {
-        #         "coding": [
-        #             {
-        #                 "system": "http://terminology.hl7.org/CodeSystem/research-subject-state-type", # noqa:E501
-        #                 "code": "Enrollment",
-        #             }
-        #         ],
-        #         "text": "Enrollment status",
-        #     }
-        # },
         {
             "type": {
                 "coding": [

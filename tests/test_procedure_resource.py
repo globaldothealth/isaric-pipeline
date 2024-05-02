@@ -43,12 +43,6 @@ PROCEDURE_DICT_INPUT = {
         "start": "2013-01-28T13:31:00+01:00",
         "end": "2013-01-28T14:27:00+01:00",
     },
-    # "_occurrenceDateTime": {
-    #     "extension": [
-    #         {"url": "approximateDate", "valueString": "month 3"},
-    #         {"url": "relativeDay", "valueInteger": 3},
-    #     ]
-    # },
     "performer": [
         {
             "function": {
