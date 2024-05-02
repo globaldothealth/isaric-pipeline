@@ -37,7 +37,7 @@ def flatten_column(
         raise ValueError("Input data must be a pandas DataFrame or Series.")
 
 
-def explode_and_flatten(df, list_cols):
+def explode_and_flatten(df, list_cols: list[str]):
     """
     Recursively explodes and flattens a dataframe.
     Columns containing a 'coding' or 'extension' list are left intact for later
@@ -47,9 +47,14 @@ def explode_and_flatten(df, list_cols):
     lists: list of columns containing lists in the dataframe
     """
     try:
-        df = df.explode([n for n in list_cols])
+        df = df.explode(list_cols)
     except ValueError:
-        raise ValueError("Can't explode a dataframe with lists of different lengths")
+
+        list_lengths = [len(df[x][0]) for x in list_cols]
+        long_list_cols = [x for x, y in zip(list_cols, list_lengths) if y > 1]
+        list_cols = [x for x in list_cols if x not in long_list_cols]
+        df = df.explode(list_cols)
+        df.rename(columns={x: x + "_dense" for x in long_list_cols}, inplace=True)
 
     if len(df) == 1:
         # only one concept in each list
@@ -57,8 +62,6 @@ def explode_and_flatten(df, list_cols):
             df = flatten_column(df, lc)
     else:
         raise NotImplementedError("Can't handle lists with more than one concept yet")
-    # for lc in list_cols:
-    #     df = flatten_column(df, lc)
 
     # check if any cols remain containing lists that aren't 'coding' chunks or extension
     list_columns = df.map(lambda x: isinstance(x, list))
@@ -69,6 +72,7 @@ def explode_and_flatten(df, list_cols):
             list_columns[col].any()
             and not col.endswith("coding")
             and not col.endswith("extension")
+            and not col.endswith("_dense")
         )
     ]
     if new_list_cols:

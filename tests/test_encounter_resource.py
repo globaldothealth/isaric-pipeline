@@ -94,36 +94,36 @@ ENCOUNTER_DICT_INPUT = {
             ]
         }
     ],
-    # "diagnosis": [
-    #     {
-    #         "condition": [{"reference": {"reference": "Condition/stroke"}}],
-    #         "use": [
-    #             {
-    #                 "coding": [
-    #                     {
-    #                         "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
-    #                         "code": "AD",
-    #                         "display": "Admission diagnosis",
-    #                     }
-    #                 ]
-    #             }
-    #         ],
-    #     },
-    #     {
-    #         "condition": [{"reference": {"reference": "Condition/f201"}}],
-    #         "use": [
-    #             {
-    #                 "coding": [
-    #                     {
-    #                         "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
-    #                         "code": "DD",
-    #                         "display": "Discharge diagnosis",
-    #                     }
-    #                 ]
-    #             }
-    #         ],
-    #     },
-    # ],
+    "diagnosis": [
+        {
+            "condition": [{"reference": {"reference": "Condition/stroke"}}],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
+                            "code": "AD",
+                            "display": "Admission diagnosis",
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "condition": [{"reference": {"reference": "Condition/f201"}}],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
+                            "code": "DD",
+                            "display": "Discharge diagnosis",
+                        }
+                    ]
+                }
+            ],
+        },
+    ],
     "account": [{"reference": "Account/example"}],
     "dietPreference": [
         {
@@ -194,8 +194,38 @@ ENCOUNTER_FLAT = {
     "serviceProvider": "Organization/2",
     "actualPeriod.start": datetime.date(2013, 3, 11),
     "actualPeriod.end": datetime.date(2013, 3, 20),
-    # diagnosis.condition: ["Condition/stroke", "Condition/f201"],
-    # diagnosis.use.code: ["http://terminology.hl7.org/CodeSystem/diagnosis-role|AD", "http://terminology.hl7.org/CodeSystem/diagnosis-role|DD"],  # noqa: E501
+    "diagnosis_dense": [
+        [
+            {
+                "condition": [{"reference": {"reference": "Condition/stroke"}}],
+                "use": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
+                                "code": "AD",
+                                "display": "Admission diagnosis",
+                            }
+                        ]
+                    }
+                ],
+            },
+            {
+                "condition": [{"reference": {"reference": "Condition/f201"}}],
+                "use": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
+                                "code": "DD",
+                                "display": "Discharge diagnosis",
+                            }
+                        ]
+                    }
+                ],
+            },
+        ]
+    ],
     "admission.origin": "Location/2",
     "admission.admitSource.code": "http://snomed.info/sct|309902002",
     "admission.admitSource.text": "Clinical Oncology Department",
@@ -275,6 +305,36 @@ ENCOUNTER_DICT_OUT = {
                 }
             ]
         }
+    ],
+    "diagnosis": [
+        {
+            "condition": [{"reference": {"reference": "Condition/stroke"}}],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
+                            "code": "AD",
+                            "display": "Admission diagnosis",
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "condition": [{"reference": {"reference": "Condition/f201"}}],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/diagnosis-role",  # noqa: E501
+                            "code": "DD",
+                            "display": "Discharge diagnosis",
+                        }
+                    ]
+                }
+            ],
+        },
     ],
     "admission": {
         "origin": {"reference": "Location/2"},

@@ -202,6 +202,14 @@ def expand_concepts(data: dict, data_class: type[_DomainResource]) -> dict:
         else:
             expanded[k] = set_datatypes(k, v_dict, group_classes[k])
 
+    dense_cols = {
+        k: k.removesuffix("_dense") for k in data.keys() if k.endswith("_dense")
+    }
+    if dense_cols:
+        for old_k, new_k in dense_cols.items():
+            data[new_k] = data[old_k]
+            del data[old_k]
+
     for k in keys_to_replace:
         data.pop(k)
     data.update(expanded)
