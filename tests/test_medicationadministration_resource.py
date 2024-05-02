@@ -160,8 +160,6 @@ def test_medicationadministration_to_flat():
 
 
 def test_medicationadministration_from_flat():
-    # 'dose' in this case is a simleQuanitity but nowhere does it state this in the json
-    # it just uses .code and is therefore assumed to be a codeableConcept.
     meds = MedicationAdministration(**MEDS_DICT_OUT)
 
     flat_meds = MedicationAdministration.from_flat(

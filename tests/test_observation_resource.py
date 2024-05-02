@@ -4,80 +4,9 @@ import os
 from fhirflat.resources.observation import Observation
 import datetime
 
-# TODO: tests with 'component' lists (in this case systolic and diastolic readings).
+# TODO: extra observation with a single component for travel.
 
 # Test Observation --------------------------------------------
-#     "component": [
-#         {
-#             "code": {
-#                 "coding": [
-#                     {
-#                         "system": "http://loinc.org",
-#                         "code": "8480-6",
-#                         "display": "Systolic blood pressure",
-#                     },
-#                     {
-#                         "system": "http://snomed.info/sct",
-#                         "code": "271649006",
-#                         "display": "Systolic blood pressure",
-#                     },
-#                     {
-#                         "system": "http://acme.org/devices/clinical-codes",
-#                         "code": "bp-s",
-#                         "display": "Systolic Blood pressure",
-#                     },
-#                 ]
-#             },
-#             "valueQuantity": {
-#                 "value": 107,
-#                 "unit": "mmHg",
-#                 "system": "http://unitsofmeasure.org",
-#                 "code": "mm[Hg]",
-#             },
-#             "interpretation": [
-#                 {
-#                     "coding": [
-#                         {
-#                             "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",   # noqa: E501
-#                             "code": "N",
-#                             "display": "normal",
-#                         }
-#                     ],
-#                     "text": "Normal",
-#                 }
-#             ],
-#         },
-#         {
-#             "code": {
-#                 "coding": [
-#                     {
-#                         "system": "http://loinc.org",
-#                         "code": "8462-4",
-#                         "display": "Diastolic blood pressure",
-#                     }
-#                 ]
-#             },
-#             "valueQuantity": {
-#                 "value": 60,
-#                 "unit": "mmHg",
-#                 "system": "http://unitsofmeasure.org",
-#                 "code": "mm[Hg]",
-#             },
-#             "interpretation": [
-#                 {
-#                     "coding": [
-#                         {
-#                             "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
-#                             "code": "L",
-#                             "display": "low",
-#                         }
-#                     ],
-#                     "text": "Below low normal",
-#                 }
-#             ],
-#         },
-#     ],
-# }
 
 OBSERVATION_DICT_INPUT = {
     "resourceType": "Observation",
@@ -147,6 +76,71 @@ OBSERVATION_DICT_INPUT = {
             }
         ]
     },
+    "component": [
+        {
+            "code": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8480-6",
+                        "display": "Systolic blood pressure",
+                    },
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "271649006",
+                        "display": "Systolic blood pressure",
+                    },
+                ]
+            },
+            "valueQuantity": {
+                "value": 107,
+                "unit": "mmHg",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]",
+            },
+            "interpretation": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
+                            "code": "N",
+                            "display": "normal",
+                        }
+                    ],
+                    "text": "Normal",
+                }
+            ],
+        },
+        {
+            "code": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8462-4",
+                        "display": "Diastolic blood pressure",
+                    }
+                ]
+            },
+            "valueQuantity": {
+                "value": 60,
+                "unit": "mmHg",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]",
+            },
+            "interpretation": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
+                            "code": "L",
+                            "display": "low",
+                        }
+                    ],
+                    "text": "Below low normal",
+                }
+            ],
+        },
+    ],
 }
 
 OBSERVATION_FLAT = {
@@ -166,6 +160,73 @@ OBSERVATION_FLAT = {
     "subject": "Patient/example",
     "bodySite.code": "http://snomed.info/sct|368209003",
     "bodySite.text": "Right arm",
+    "component_dense": [
+        [
+            {
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8480-6",
+                            "display": "Systolic blood pressure",
+                        },
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "271649006",
+                            "display": "Systolic blood pressure",
+                        },
+                    ]
+                },
+                "valueQuantity": {
+                    "value": 107,
+                    "unit": "mmHg",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mm[Hg]",
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
+                                "code": "N",
+                                "display": "normal",
+                            }
+                        ],
+                        "text": "Normal",
+                    }
+                ],
+            },
+            {
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "8462-4",
+                            "display": "Diastolic blood pressure",
+                        }
+                    ]
+                },
+                "valueQuantity": {
+                    "value": 60,
+                    "unit": "mmHg",
+                    "system": "http://unitsofmeasure.org",
+                    "code": "mm[Hg]",
+                },
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
+                                "code": "L",
+                                "display": "low",
+                            }
+                        ],
+                        "text": "Below low normal",
+                    }
+                ],
+            },
+        ]
+    ],
 }
 
 OBSERVATION_DICT_OUT = {
@@ -234,6 +295,71 @@ OBSERVATION_DICT_OUT = {
             }
         ]
     },
+    "component": [
+        {
+            "code": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8480-6",
+                        "display": "Systolic blood pressure",
+                    },
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "271649006",
+                        "display": "Systolic blood pressure",
+                    },
+                ]
+            },
+            "valueQuantity": {
+                "value": 107,
+                "unit": "mmHg",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]",
+            },
+            "interpretation": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
+                            "code": "N",
+                            "display": "normal",
+                        }
+                    ],
+                    "text": "Normal",
+                }
+            ],
+        },
+        {
+            "code": {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "8462-4",
+                        "display": "Diastolic blood pressure",
+                    }
+                ]
+            },
+            "valueQuantity": {
+                "value": 60,
+                "unit": "mmHg",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]",
+            },
+            "interpretation": [
+                {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",  # noqa: E501
+                            "code": "L",
+                            "display": "low",
+                        }
+                    ],
+                    "text": "Below low normal",
+                }
+            ],
+        },
+    ],
 }
 
 

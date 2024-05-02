@@ -29,7 +29,7 @@ class FHIRFlatBase(DomainResource):
         return [
             p.alias
             for p in cls.element_properties()
-            if "typing.List" in str(p.outer_type_)
+            if "typing.List" in str(p.outer_type_) or "list" in str(p.outer_type_)
         ]
 
     @classmethod
