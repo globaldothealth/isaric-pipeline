@@ -98,6 +98,40 @@ class FHIRFlatBase(DomainResource):
         else:
             return resources
 
+    @classmethod
+    def fhir_file_to_flat(cls, source_file: str, output_name: str | None = None):
+        """
+        Converts a .ndjson file of exported FHIR resources to a FHIRflat parquet file.
+
+        source_file: str
+            Path to the FHIR resource file.
+
+        output_name: str
+            Name of the parquet file to be generated.
+
+        Returns
+        -------
+        parquet file
+            FHIRflat file containing condition data
+        """
+
+        if not output_name:
+            output_name = f"{cls.resource_type}.parquet"
+
+        # identify attributes that are lists of FHIR types and not excluded
+        list_resources = [x for x in cls.attr_lists() if x not in cls.flat_exclusions]
+
+        fhir_data = cls.fhir_bulk_import(source_file)
+
+        flat_rows = []
+        for resource in fhir_data:
+            for field in cls.flat_exclusions:
+                setattr(resource, field, None)
+            flat_rows.append(fhir2flat(resource, lists=list_resources))
+
+        df = pd.concat(flat_rows)
+        return df.to_parquet(output_name)
+
     def to_flat(self, filename: str) -> None:
         """
         Generates a FHIRflat parquet file from the resource.
@@ -111,17 +145,11 @@ class FHIRFlatBase(DomainResource):
             FHIRflat file containing condition data
         """
 
-        # TODO: add support for lists of fhir resources, most likely from a fhir bundle
-        # or single file json output.
-        # Most likely the input format from FHIR bulk export or for import into FHIR
-        # server will be ndjson as referenced in
-        # https://build.fhir.org/ig/HL7/bulk-data/export.html.
-
         # identify attributes that are lists of FHIR types
         list_resources = self.attr_lists()
 
         # clear data from attributes not used in FHIRflat
-        for field in [x for x in self.elements_sequence() if x in self.flat_exclusions]:
+        for field in self.flat_exclusions:
             setattr(self, field, None)
             list_resources.remove(field) if field in list_resources else None
 

@@ -41,8 +41,9 @@ or a FHIRflat file can be generated directly from a FHIR .ndjson export file.
 ```
 from fhir.resources.patient import Patient
 
-patients = Patient.fhir_to_flat("patient_export.ndjson")
+Patient.fhir_file_to_flat("patient_export.ndjson")
 ```
+will create a "patient_export.parquet" FHIRflat file.
 This first initialises a Patient data class for each row to make use of the Pydantic 
 data validation, then creates a FHIRflat file.
 
