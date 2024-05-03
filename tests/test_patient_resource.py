@@ -1,6 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import os
+import datetime
 from fhirflat.resources.patient import Patient
 
 PATIENT_DICT_INPUT = {
@@ -53,3 +54,33 @@ def test_bulk_fhir_import_patient():
     patients = Patient.fhir_bulk_import("tests/data/patient.ndjson")
 
     assert len(patients) == 3
+
+
+patient_ndjson_out = {
+    # "index": [0, 0, 0],
+    "resourceType": ["Patient", "Patient", "Patient"],
+    "id": [
+        "ewnMwMK-UNvVvM.bakFSlkw3",
+        "exU8JSL0p8npSw5g1QYAyOw3",
+        "ezER-U3fAMP-WvI-Fc8V9wQ3",
+    ],
+    "gender": ["female", "female", "male"],
+    "birthDate": [
+        datetime.date(2006, 10, 7),
+        datetime.date(2019, 9, 21),
+        datetime.date(1967, 1, 19),
+    ],
+    "deceasedBoolean": [False, False, False],
+    "maritalStatus.text": ["Single", "Single", "Single"],
+}
+
+
+def test_bulk_fhir_to_flat_patient():
+    Patient.fhir_file_to_flat(
+        "tests/data/patient.ndjson", "multi_patient_output.parquet"
+    )
+
+    df = pd.read_parquet("multi_patient_output.parquet")
+    df.reset_index(inplace=True, drop=True)
+    assert_frame_equal(pd.DataFrame(patient_ndjson_out), df)
+    os.remove("multi_patient_output.parquet")
