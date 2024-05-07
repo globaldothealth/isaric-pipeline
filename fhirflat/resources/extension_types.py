@@ -43,5 +43,13 @@ class durationType(AbstractType):
     __resource_type__ = "Duration"
 
 
+class ageType(AbstractType):
+    __resource_type__ = "Age"
+
+
+class birthSexType(AbstractType):
+    __resource_type__ = "birthSex"
+
+
 class dateTimeExtensionType(AbstractType):
     __resource_type__ = "dateTimeExtension"

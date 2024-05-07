@@ -342,6 +342,78 @@ class Duration(_DataType):
         ]
 
 
+class Age(_DataType):
+    """
+    An ISARIC extension collecting data on the age of a patient.
+    """
+
+    resource_type = Field("Age", const=True)
+
+    url = Field("Age", const=True, alias="url")
+
+    valueQuantity: fhirtypes.QuantityType = Field(
+        None,
+        alias="valueQuantity",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        element_required=True,
+    )
+
+    @classmethod
+    def elements_sequence(cls):
+        """returning all elements names from
+        ``Extension`` according specification,
+        with preserving original sequence order.
+        """
+        return [
+            "id",
+            "extension",
+            "url",
+            "valueQuantity",
+        ]
+
+
+class birthSex(_DataType):
+    """
+    An ISARIC extension collecting data on the birth sex of a patient.
+    """
+
+    resource_type = Field("birthSex", const=True)
+
+    url = Field("birthSex", const=True, alias="url")
+
+    valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
+        None,
+        alias="valueCodeableConcept",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        element_required=True,
+    )
+
+    @classmethod
+    def elements_sequence(cls):
+        """returning all elements names from
+        ``Extension`` according specification,
+        with preserving original sequence order.
+        """
+        return [
+            "id",
+            "extension",
+            "url",
+            "valueCodeableConcept",
+        ]
+
+
 # ------------------- extension types ------------------------------
 
 
