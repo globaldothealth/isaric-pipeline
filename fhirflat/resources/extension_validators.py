@@ -49,6 +49,9 @@ from fhir.resources.core.fhirabstractmodel import FHIRAbstractModel
 if typing.TYPE_CHECKING:
     from pydantic.v1 import BaseModel
 
+# TODO: Make the validation error clearer when the error is that a
+# valueCodeableConcept is missing the outer "coding":[] list.
+
 
 class Validators:
     def __init__(self):
@@ -60,6 +63,8 @@ class Validators:
             "relativePeriod": (None, ".extensions"),
             "approximateDate": (None, ".extensions"),
             "Duration": (None, ".extensions"),
+            "Age": (None, ".extensions"),
+            "birthSex": (None, ".extensions"),
             "dateTimeExtension": (None, ".extensions"),
         }
 
@@ -215,6 +220,14 @@ def approximatedate_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel])
 
 def duration_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
     return Validators().fhir_model_validator("Duration", v)
+
+
+def age_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
+    return Validators().fhir_model_validator("Age", v)
+
+
+def birthsex_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
+    return Validators().fhir_model_validator("birthSex", v)
 
 
 def datetimeextension_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):

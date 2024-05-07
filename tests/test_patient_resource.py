@@ -84,3 +84,81 @@ def test_bulk_fhir_to_flat_patient():
     df.reset_index(inplace=True, drop=True)
     assert_frame_equal(pd.DataFrame(patient_ndjson_out), df)
     os.remove("multi_patient_output.parquet")
+
+
+PATIENT_EXT_DICT_INPUT = {
+    "id": "f001",
+    "active": True,
+    "extension": [
+        {"url": "Age", "valueQuantity": {"value": 25, "unit": "years"}},
+        {
+            "url": "birthSex",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "248152002",
+                        "display": "Female (finding)",
+                    }
+                ]
+            },
+        },
+    ],
+    "name": [{"text": "Minnie Mouse"}],
+    "gender": "female",
+    "deceasedBoolean": False,
+}
+
+PATIENT_EXT_FLAT = {
+    "resourceType": "Patient",
+    "id": "f001",
+    "extension.Age.value": 25,
+    "extension.Age.unit": "years",
+    "extension.birthSex.code": "http://snomed.info/sct|248152002",
+    "extension.birthSex.text": "Female (finding)",
+    "gender": "female",
+    "deceasedBoolean": False,
+}
+
+PATIENT_EXT_DICT_OUT = {
+    "id": "f001",
+    "extension": [
+        {"url": "Age", "valueQuantity": {"value": 25, "unit": "years"}},
+        {
+            "url": "birthSex",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "248152002",
+                        "display": "Female (finding)",
+                    }
+                ]
+            },
+        },
+    ],
+    "gender": "female",
+    "deceasedBoolean": False,
+}
+
+
+def test_patient_with_extensions_to_flat():
+    patient = Patient(**PATIENT_EXT_DICT_INPUT)
+
+    patient.to_flat("test_patient_ext.parquet")
+
+    assert_frame_equal(
+        pd.read_parquet("test_patient_ext.parquet"),
+        pd.DataFrame(PATIENT_EXT_FLAT, index=[0]),
+        check_like=True,  # ignore column order
+        check_dtype=False,
+    )
+    os.remove("test_patient_ext.parquet")
+
+
+def test_patient_with_extensions_from_flat():
+    patient = Patient(**PATIENT_EXT_DICT_OUT)
+
+    flat_patient = Patient.from_flat("tests/data/patient_ext_flat.parquet")
+
+    assert patient == flat_patient
