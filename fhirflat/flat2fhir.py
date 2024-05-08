@@ -15,6 +15,21 @@ def create_codeable_concept(
     old_dict: dict[str, list[str] | str], name: str
 ) -> dict[str, list[str]]:
     """Re-creates a codeableConcept structure from the FHIRflat representation."""
+
+    # for reading in from ingestion pipeline
+    if (name + ".code" and name + ".system") in old_dict:
+        new_dict = {
+            "coding": [
+                {
+                    "system": old_dict[name + ".system"],
+                    "code": str(int(old_dict[name + ".code"])),
+                    "display": old_dict[name + ".text"],
+                }
+            ]
+        }
+        return new_dict
+
+    # From FHIRflat file
     codes = old_dict.get(name + ".code")
 
     if codes is None:
@@ -193,14 +208,17 @@ def expand_concepts(data: dict, data_class: type[_DomainResource]) -> dict:
         if all(isinstance(v, dict) for v in v_dict.values()):
             # coming back out of nested recursion
             expanded[k] = {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
-            if data_class.schema()["properties"][k].get("type") == "array":
-                if k == "extension":
-                    expanded[k] = [v for v in expanded[k].values()]
-                else:
-                    expanded[k] = [expanded[k]]
 
         else:
             expanded[k] = set_datatypes(k, v_dict, group_classes[k])
+
+        if isinstance(data_class, list):
+            continue
+        elif data_class.schema()["properties"][k].get("type") == "array":
+            if k == "extension":
+                expanded[k] = [v for v in expanded[k].values()]
+            else:
+                expanded[k] = [expanded[k]]
 
     dense_cols = {
         k: k.removesuffix("_dense") for k in data.keys() if k.endswith("_dense")

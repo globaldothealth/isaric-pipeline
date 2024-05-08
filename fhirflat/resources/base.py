@@ -39,7 +39,7 @@ class FHIRFlatBase(DomainResource):
         return [x for x in cls.elements_sequence() if x not in cls.flat_exclusions]
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> FHIRFlatBase:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> FHIRFlatBase:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
@@ -72,6 +72,31 @@ class FHIRFlatBase(DomainResource):
             return df["fhir"].iloc[0]
         else:
             return list(df["fhir"])
+
+    @classmethod
+    def ingest_to_flat(cls, data: pd.DataFrame, filename: str):
+        """
+        Takes a pandas dataframe and populates the resource with the data.
+
+        data: pd.DataFrame
+            Pandas dataframe containing the data
+
+        Returns
+        -------
+        FHIRFlatBase or list[FHIRFlatBase]
+        """
+
+        # Creates a columns of FHIR resource instances
+        data["fhir"] = data["flat_dict"].apply(
+            lambda x: cls.cleanup(x, json_data=False)
+        )
+
+        data["fhir_flat"] = data["fhir"].apply(lambda x: x.to_flat())
+
+        # get the flat dataframe out into it's own variable
+        flat_df = pd.concat(data["fhir_flat"].tolist(), ignore_index=True)
+
+        flat_df.to_parquet(f"{filename}.parquet")
 
     @classmethod
     def fhir_bulk_import(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:
@@ -110,7 +135,8 @@ class FHIRFlatBase(DomainResource):
         source_file: str
             Path to the FHIR resource file.
         output_name: str (optional)
-            Name of the parquet file to be generated, optional, defaults to {resource}.parquet
+            Name of the parquet file to be generated, optional, defaults to
+            {resource}.parquet
         """
 
         if not output_name:
@@ -128,11 +154,17 @@ class FHIRFlatBase(DomainResource):
             flat_rows.append(fhir2flat(resource, lists=list_resources))
 
         df = pd.concat(flat_rows)
+
+        # remove required attributes now it's in the flat representation
+        for attr in cls.flat_defaults:
+            df.drop(list(df.filter(regex=attr)), axis=1, inplace=True)
+
         df.to_parquet(output_name)
 
-    def to_flat(self, filename: str) -> None:
+    def to_flat(self, filename: str | None = None) -> None:
         """
         Generates a FHIRflat parquet file from the resource.
+        If no file name is provided, returns the pandas dataframe.
 
         Parameters
         ----------
@@ -154,4 +186,7 @@ class FHIRFlatBase(DomainResource):
         for attr in self.flat_defaults:
             flat_df.drop(list(flat_df.filter(regex=attr)), axis=1, inplace=True)
 
-        flat_df.to_parquet(filename)
+        if filename:
+            flat_df.to_parquet(filename)
+        else:
+            return flat_df

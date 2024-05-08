@@ -60,13 +60,14 @@ class Encounter(_Encounter, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Encounter:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Encounter:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
         for field in {
             "subject",
