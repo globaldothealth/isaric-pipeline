@@ -29,7 +29,7 @@ class Specimen(_Specimen, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in ({
             "subject",
             "parent",
             "request",
@@ -37,9 +37,8 @@ class Specimen(_Specimen, FHIRFlatBase):
             "collection.procedure",
             "container.device",
             "container.location",
-        ] + [x for x in data.keys() if x.endswith(".reference")]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        } | {x for x in data.keys() if x.endswith(".reference")}).intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         data = expand_concepts(data, cls)
 

@@ -29,13 +29,12 @@ class Location(_Location, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in {
             "managingOrganization",
             "partOf",
             "endpoint",
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }.intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         data = expand_concepts(data, cls)
 

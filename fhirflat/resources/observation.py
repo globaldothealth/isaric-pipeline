@@ -100,16 +100,15 @@ class Observation(_Observation, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in {
             "encounter",
             "subject",
             "performer",
             "bodyStructure",
             "specimen",
             "device",
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }.intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["status"] = "final"

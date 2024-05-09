@@ -24,7 +24,7 @@ class Encounter(_Encounter, FHIRFlatBase):
         title="List of `Extension` items (represented as `dict` in JSON)",
         description=(
             """
-            Contains the G.H 'eventTiming' and 'relativePeriod' extensions, and allows
+            Contains the Global.health 'eventTiming' and 'relativePeriod' extensions, and allows
              extensions from other implementations to be included.
             """
         ),
@@ -68,7 +68,7 @@ class Encounter(_Encounter, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in {
             "subject",
             "episodeOfCare",
             "basedOn",
@@ -77,9 +77,8 @@ class Encounter(_Encounter, FHIRFlatBase):
             "serviceProvider",
             "admission.destination",
             "admission.origin",
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }.intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["status"] = "completed"
