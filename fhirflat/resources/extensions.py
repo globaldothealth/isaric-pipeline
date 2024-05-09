@@ -169,8 +169,11 @@ class relativePeriod(_DataType):
     An ISARIC extension recording the start and end dates an event occurred relative to
     the admission date.
 
-    E.g. a an Encounter that starts on the 1st of Jan, the same day as admission, and
-    ends on the 5th, would have a relativePeriod extension where relativeStart is 1 and
+    relativePeriod is comprised of two components: relativeStart, denoting the
+    start of the period and relativeEnd, denoting the end of the period.
+
+    E.g. a an Encounter that starts on the 5th of Jan, the same day as admission, and
+    ends on the 10th, would have a relativePeriod extension where relativeStart is 1 and
     relativeEnd is 5.
     """
 
