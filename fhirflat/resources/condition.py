@@ -58,7 +58,7 @@ class Condition(_Condition, FHIRFlatBase):
             "coding": [
                 {
                     "system": (
-                        "http://terminology.hl7.org/CodeSystem/" "condition-clinical"
+                        "http://terminology.hl7.org/CodeSystem/condition-clinical"
                     ),
                     "code": "unknown",
                 }
