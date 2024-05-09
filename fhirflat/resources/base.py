@@ -45,15 +45,17 @@ class FHIRFlatBase(DomainResource):
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        NotImplementedError("Subclasses must implement this method")
+        raise NotImplementedError("Subclasses must implement this method")
 
     @classmethod
     def from_flat(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:
         """
         Takes a FHIRflat pandas dataframe and populates the resource with the data.
 
+        Parameters
+        ----------
         file: str
-            Path to the parquet FHIRflat file containing patient data
+            Path to the parquet FHIRflat file containing clinical data
 
         Returns
         -------
@@ -62,11 +64,9 @@ class FHIRFlatBase(DomainResource):
 
         df = pd.read_parquet(file)
 
-        df["json_data"] = df.apply(
+        df["fhir"] = df.apply(
             lambda row: row.to_json(date_format="iso", date_unit="s"), axis=1
-        )
-        # Creates a columns of FHIR resource instances
-        df["fhir"] = df["json_data"].apply(lambda x: cls.cleanup(x))
+        ).apply(lambda x: cls.cleanup(x))
 
         if len(df) == 1:
             return df["fhir"].iloc[0]
@@ -74,11 +74,13 @@ class FHIRFlatBase(DomainResource):
             return list(df["fhir"])
 
     @classmethod
-    def fhir_bulk_import(cls, file: str) -> list[FHIRFlatBase]:
+    def fhir_bulk_import(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:
         """
         Takes a ndjson file containing FHIR resources as json strings and returns a
         list of populated FHIR resources.
 
+        Parameters
+        ----------
         file: str
             Path to the .ndjson file containing FHIR data
 
@@ -103,16 +105,12 @@ class FHIRFlatBase(DomainResource):
         """
         Converts a .ndjson file of exported FHIR resources to a FHIRflat parquet file.
 
+        Parameters
+        ----------
         source_file: str
             Path to the FHIR resource file.
-
-        output_name: str
-            Name of the parquet file to be generated.
-
-        Returns
-        -------
-        parquet file
-            FHIRflat file containing condition data
+        output_name: str (optional)
+            Name of the parquet file to be generated, optional, defaults to {resource}.parquet
         """
 
         if not output_name:
@@ -130,19 +128,16 @@ class FHIRFlatBase(DomainResource):
             flat_rows.append(fhir2flat(resource, lists=list_resources))
 
         df = pd.concat(flat_rows)
-        return df.to_parquet(output_name)
+        df.to_parquet(output_name)
 
     def to_flat(self, filename: str) -> None:
         """
         Generates a FHIRflat parquet file from the resource.
 
+        Parameters
+        ----------
         filename: str
             Name of the parquet file to be generated.
-
-        Returns
-        -------
-        parquet file
-            FHIRflat file containing condition data
         """
 
         # identify attributes that are lists of FHIR types
@@ -159,4 +154,4 @@ class FHIRFlatBase(DomainResource):
         for attr in self.flat_defaults:
             flat_df.drop(list(flat_df.filter(regex=attr)), axis=1, inplace=True)
 
-        return flat_df.to_parquet(filename)
+        flat_df.to_parquet(filename)
