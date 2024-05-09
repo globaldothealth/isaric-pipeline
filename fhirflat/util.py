@@ -26,7 +26,7 @@ def group_keys(data_keys: list[str]) -> list[dict[str, list[str]]]:
 
 def get_fhirtype(t: str | list[str]):
     """
-    Finds the relevent class from fhir.resources for a given string.
+    Finds the relevant class from fhir.resources for a given string.
     """
 
     if isinstance(t, list):
@@ -55,7 +55,7 @@ def get_fhirtype(t: str | list[str]):
 
 def get_local_extension_type(t: str):
     """
-    Finds the relevent class from fhir.resources for a given string.
+    Finds the relevant class from local extensions for a given string.
     """
 
     try:

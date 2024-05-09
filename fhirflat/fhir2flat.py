@@ -37,7 +37,7 @@ def flatten_column(
         raise ValueError("Input data must be a pandas DataFrame or Series.")
 
 
-def explode_and_flatten(df, list_cols: list[str]):
+def explode_and_flatten(df: pd.DataFrame, list_cols: list[str]) -> pd.DataFrame:
     """
     Recursively explodes and flattens a dataframe.
     Columns containing a 'coding' or 'extension' list are left intact for later
