@@ -89,7 +89,7 @@ class Procedure(_Procedure, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in {
             "partOf",
             "encounter",
             "subject",
@@ -97,9 +97,8 @@ class Procedure(_Procedure, FHIRFlatBase):
             "performer",
             "location",
             "report",
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }.intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["status"] = "completed"

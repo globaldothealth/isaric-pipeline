@@ -28,13 +28,12 @@ class Organization(_Organization, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in {
             "partOf",
             "endpoint",
             "qualification.issuer",
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }.intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["active"] = True

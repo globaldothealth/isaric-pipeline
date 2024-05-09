@@ -73,11 +73,10 @@ class Immunization(_Immunization, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in ["patient", "encounter", "location"] + [
+        for field in ({"patient", "encounter", "location"} | {
             x for x in data.keys() if x.endswith(".reference")
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }).intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["status"] = "completed"

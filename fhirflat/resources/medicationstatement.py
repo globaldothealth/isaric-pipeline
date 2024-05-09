@@ -33,15 +33,14 @@ class MedicationStatement(_MedicationStatement, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in [
+        for field in ({
             "partOf",
             "subject",
             "encounter",
             "derivedFrom",
             "relatedClinicalInformation",
-        ] + [x for x in data.keys() if x.endswith(".reference")]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+         } | {x for x in data.keys() if x.endswith(".reference")}).intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["status"] = "recorded"

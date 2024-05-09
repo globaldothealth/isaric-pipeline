@@ -29,11 +29,10 @@ class ResearchSubject(_ResearchSubject, FHIRFlatBase):
         """
         data = orjson.loads(data)
 
-        for field in ["study", "subject", "consent"] + [
+        for field in ({"study", "subject", "consent"} | {
             x for x in data.keys() if x.endswith(".reference")
-        ]:
-            if field in data.keys():
-                data[field] = {"reference": data[field]}
+        }).intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default status back in
         data["status"] = "active"
