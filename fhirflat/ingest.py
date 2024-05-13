@@ -45,7 +45,7 @@ def create_dictionary(data, map_file):
     data = pd.read_csv(data, header=0)
     map_df = pd.read_csv(map_file, header=0)
 
-    filtered_data = data[map_df["redcap_variable"].dropna().unique()]
+    filtered_data = data[map_df["redcap_variable"].dropna().unique()].copy()
 
     # Fills the na redcap variables with the previous value
     map_df["redcap_variable"] = map_df["redcap_variable"].ffill()
