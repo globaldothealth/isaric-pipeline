@@ -33,7 +33,7 @@ class Procedure(_Procedure, FHIRFlatBase):
         title="Additional content defined by implementations",
         description=(
             """
-            Contains the G.H 'timingPhase', 'relativePeriod' and 'Duration' extensions,
+            Contains the G.H 'timingPhase', 'relativePeriod' and 'duration' extensions,
             and allows extensions from other implementations to be included."""
         ),
         # if property is element of this resource.
@@ -75,7 +75,7 @@ class Procedure(_Procedure, FHIRFlatBase):
 
         if duration_count > 1 or tim_phase_count > 1 or rel_phase_count > 1:
             raise ValueError(
-                "Duration, timingPhase and relativePeriod can only appear once."
+                "duration, timingPhase and relativePeriod can only appear once."
             )
 
         return extensions

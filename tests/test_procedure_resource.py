@@ -10,7 +10,7 @@ PROCEDURE_DICT_INPUT = {
     "instantiatesCanonical": ["http://example.org/fhir/PlanDefinition/KDN5"],
     "status": "completed",
     "extension": [
-        {"url": "Duration", "valueQuantity": {"value": 1, "unit": "d"}},
+        {"url": "duration", "valueQuantity": {"value": 1, "unit": "d"}},
         {
             "url": "timingPhase",
             "valueCodeableConcept": {
@@ -73,8 +73,8 @@ PROCEDURE_DICT_INPUT = {
 
 PROCEDURE_FLAT = {
     "resourceType": "Procedure",
-    "extension.Duration.value": 1,
-    "extension.Duration.unit": "d",
+    "extension.duration.value": 1,
+    "extension.duration.unit": "d",
     "extension.timingPhase.code": "timing.com|1234",
     "extension.timingPhase.text": None,
     "extension.relativePeriod.relativeStart": 2,
@@ -97,7 +97,7 @@ PROCEDURE_DICT_OUT = {
     "resourceType": "Procedure",
     "status": "completed",
     "extension": [
-        {"url": "Duration", "valueQuantity": {"value": 1.0, "unit": "d"}},
+        {"url": "duration", "valueQuantity": {"value": 1.0, "unit": "d"}},
         {
             "url": "relativePeriod",
             "extension": [

@@ -32,7 +32,7 @@ def get_fhirtype(t: str | list[str]):
     if isinstance(t, list):
         return [get_fhirtype(x) for x in t]
 
-    if not hasattr(extensions, t):
+    if not (hasattr(extensions, t) or hasattr(extensions, t.capitalize())):
         try:
             return getattr(getattr(fhir.resources, t.lower()), t)
         except AttributeError:
@@ -61,4 +61,7 @@ def get_local_extension_type(t: str):
     try:
         return getattr(extensions, t)
     except AttributeError:
-        raise AttributeError(f"Could not find {t} in fhirflat extensions")
+        try:
+            return getattr(extensions, t.capitalize())
+        except AttributeError:
+            raise AttributeError(f"Could not find {t} in fhirflat extensions")

@@ -90,7 +90,7 @@ PATIENT_EXT_DICT_INPUT = {
     "id": "f001",
     "active": True,
     "extension": [
-        {"url": "Age", "valueQuantity": {"value": 25, "unit": "years"}},
+        {"url": "age", "valueQuantity": {"value": 25, "unit": "years"}},
         {
             "url": "birthSex",
             "valueCodeableConcept": {
@@ -112,8 +112,8 @@ PATIENT_EXT_DICT_INPUT = {
 PATIENT_EXT_FLAT = {
     "resourceType": "Patient",
     "id": "f001",
-    "extension.Age.value": 25,
-    "extension.Age.unit": "years",
+    "extension.age.value": 25,
+    "extension.age.unit": "years",
     "extension.birthSex.code": "http://snomed.info/sct|248152002",
     "extension.birthSex.text": "Female (finding)",
     "gender": "female",
@@ -123,7 +123,7 @@ PATIENT_EXT_FLAT = {
 PATIENT_EXT_DICT_OUT = {
     "id": "f001",
     "extension": [
-        {"url": "Age", "valueQuantity": {"value": 25, "unit": "years"}},
+        {"url": "age", "valueQuantity": {"value": 25, "unit": "years"}},
         {
             "url": "birthSex",
             "valueCodeableConcept": {
