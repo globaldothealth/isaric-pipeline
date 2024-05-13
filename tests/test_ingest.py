@@ -3,7 +3,7 @@ from fhirflat.resources.encounter import Encounter
 import pandas as pd
 
 
-def test_load_data():
+def test_load_data_one_to_one_single_row():
     load_data(
         "tests/dummy_data/encounter_dummy_data_single.csv",
         "tests/dummy_data/encounter_dummy_mapping.csv",

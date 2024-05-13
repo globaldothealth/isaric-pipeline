@@ -72,7 +72,7 @@ def create_dictionary(data, map_file):
                 map = map.split("+")
                 results = [find_field_value(row, response, m) for m in map]
                 results = [x for x in results if x == x]
-                return "".join(results)
+                return " ".join(results)
             else:
                 col = map.lstrip("<").rstrip(">")
                 return row[col]
@@ -103,13 +103,19 @@ def create_dictionary(data, map_file):
                     continue
             else:
                 raise ValueError(f"Column {column} not found in mapping file")
-            if not set(result.keys()).intersection(snippet.keys()):
+            duplicate_keys = set(result.keys()).intersection(snippet.keys())
+            if not duplicate_keys:
                 result = result | snippet
             else:
-                raise ValueError(
-                    "Duplicate keys in mapping:"
-                    f" {set(result.keys()).intersection(snippet.keys())}"
-                )
+                if all(
+                    result[key] == snippet[key] for key in duplicate_keys
+                ):  # Ignore duplicates if they are the same
+                    continue
+                else:
+                    raise ValueError(
+                        "Duplicate keys in mapping:"
+                        f" {set(result.keys()).intersection(snippet.keys())}"
+                    )
         return result
 
     # Apply the function across the DataFrame rows
