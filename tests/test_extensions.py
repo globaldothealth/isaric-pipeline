@@ -107,15 +107,15 @@ def test_approximateDate(data, expected_type_date, expected_type_str):
     assert type(approximate_date.valueString) is expected_type_str
 
 
-dur = {"url": "Duration", "valueQuantity": {"value": 3, "unit": "days"}}
+dur = {"url": "duration", "valueQuantity": {"value": 3, "unit": "days"}}
 
 
-def test_Duration():
-    duration = Duration(**dur)
-    assert isinstance(duration, DataType)
-    assert duration.resource_type == "Duration"
-    assert duration.url == "Duration"
-    assert type(duration.valueQuantity) is _Quantity
+def test_duration():
+    duration_inst = Duration(**dur)
+    assert isinstance(duration_inst, DataType)
+    assert duration_inst.resource_type == "Duration"
+    assert duration_inst.url == "duration"
+    assert type(duration_inst.valueQuantity) is _Quantity
 
 
 dte = {"extension": [{"url": "approximateDate", "valueDate": "2021-01-01"}, rel_day]}

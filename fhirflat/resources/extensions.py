@@ -316,7 +316,7 @@ class Duration(_DataType):
 
     resource_type = Field("Duration", const=True)
 
-    url = Field("Duration", const=True, alias="url")
+    url = Field("duration", const=True, alias="url")
 
     valueQuantity: fhirtypes.QuantityType = Field(
         None,
@@ -352,7 +352,7 @@ class Age(_DataType):
 
     resource_type = Field("Age", const=True)
 
-    url = Field("Age", const=True, alias="url")
+    url = Field("age", const=True, alias="url")
 
     valueQuantity: fhirtypes.QuantityType = Field(
         None,

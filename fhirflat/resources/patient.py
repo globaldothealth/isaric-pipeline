@@ -22,7 +22,7 @@ class Patient(Patient, FHIRFlatBase):
         title="Additional content defined by implementations",
         description=(
             """
-            Contains the G.H 'Age' and 'birthSex' extensions,
+            Contains the G.H 'age' and 'birthSex' extensions,
             and allows extensions from other implementations to be included."""
         ),
         # if property is element of this resource.
