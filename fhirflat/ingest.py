@@ -11,6 +11,7 @@ TODO: Eventually, this ahould link to a google sheet file that contains the mapp
 
 import pandas as pd
 import numpy as np
+import warnings
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
 # 1:M (single row, multiple resources) mapping: Observation, Condition, Procedure, ...
@@ -31,7 +32,7 @@ the 1:1 process.
 """
 TODO
 * cope with 'if' statements - e.g. for date overwriting.
-* deal with duplicates/how to add multiple values to a single field
+* deal with duplicates/how to add multiple values to a single field - list options.
 """
 
 
@@ -87,7 +88,7 @@ def create_dictionary(data, map_file):
                         if pd.isna(map_df.loc[column].index).all():
                             mapping = map_df.loc[(column, np.nan)].dropna()
                         else:
-                            mapping = map_df.loc[(column, str(response))].dropna()
+                            mapping = map_df.loc[(column, str(int(response)))].dropna()
                         snippet = {
                             k: (
                                 v
@@ -97,8 +98,13 @@ def create_dictionary(data, map_file):
                             for k, v in mapping.items()
                         }
                     except KeyError:
-                        # No mapping found for this column and response
-                        result[column] = f"No mapping for response {response}"
+                        # No mapping found for this column and response despite presence
+                        # in mapping file
+                        warnings.warn(
+                            f"No mapping for column {column} response {response}",
+                            UserWarning,
+                        )
+                        continue
                 else:
                     continue
             else:

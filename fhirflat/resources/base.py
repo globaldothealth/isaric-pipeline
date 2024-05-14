@@ -96,6 +96,13 @@ class FHIRFlatBase(DomainResource):
         # get the flat dataframe out into it's own variable
         flat_df = pd.concat(data["fhir_flat"].tolist(), ignore_index=True)
 
+        # Stops parquet conversion from stripping the time from mixed date/datetime
+        # columns
+        for date_cols in [
+            x for x in flat_df.columns if "date" in x.lower() or "period" in x.lower()
+        ]:
+            flat_df[date_cols] = flat_df[date_cols].astype(str)
+
         flat_df.to_parquet(f"{filename}.parquet")
 
     @classmethod
