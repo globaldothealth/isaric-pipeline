@@ -1,8 +1,10 @@
-from fhirflat.ingest import load_data
+from fhirflat.ingest import load_data, load_data_one_to_many
 from fhirflat.resources.encounter import Encounter
+from fhirflat.resources.observation import Observation
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import os
+from decimal import Decimal
 
 
 ENCOUNTER_SINGLE_ROW_FLAT = {
@@ -141,3 +143,92 @@ def test_load_data_one_to_one_multi_row():
         check_like=True,
     )
     os.remove("encounter_ingestion_multi.parquet")
+
+
+OBS_FLAT = {
+    "resourceType": [
+        "Observation",
+        "Observation",
+        "Observation",
+        "Observation",
+        "Observation",
+    ],
+    "category.code": [
+        "http://terminology.hl7.org/CodeSystem/observation-category|vital-signs",
+        "http://terminology.hl7.org/CodeSystem/observation-category|vital-signs",
+        "http://terminology.hl7.org/CodeSystem/observation-category|vital-signs",
+        "http://terminology.hl7.org/CodeSystem/observation-category|vital-signs",
+        "http://terminology.hl7.org/CodeSystem/observation-category|vital-signs",
+    ],
+    "category.text": [
+        "Vital Signs",
+        "Vital Signs",
+        "Vital Signs",
+        "Vital Signs",
+        "Vital Signs",
+    ],
+    "effectiveDateTime": [
+        "2020-01-01",
+        "2021-02-02",
+        "2022-03-03",
+        "2020-01-01",
+        "2021-02-02",
+    ],
+    "code.code": [
+        "https://loinc.org|8310-5",
+        "https://loinc.org|8310-5",
+        "https://loinc.org|8310-5",
+        "https://loinc.org|8867-4",
+        "https://loinc.org|8867-4",
+    ],
+    "code.text": [
+        "Body temperature",
+        "Body temperature",
+        "Body temperature",
+        "Heart rate",
+        "Heart rate",
+    ],
+    "subject": ["1", "2", "3", "1", "2"],
+    "encounter": ["10", "11", "12", "10", "11"],
+    "valueQuantity.value": [Decimal("36.2"), 37.0, 35.5, 120.0, 100.0],
+    "valueQuantity.unit": [
+        "DegreesCelsius",
+        "DegreesCelsius",
+        "DegreesCelsius",
+        "Beats/minute (qualifier value)",
+        "Beats/minute (qualifier value)",
+    ],
+    "valueQuantity.code": [
+        "http://unitsofmeasure|Cel",
+        "http://unitsofmeasure|Cel",
+        "http://unitsofmeasure|Cel",
+        "https://snomed.info/sct|258983007",
+        "https://snomed.info/sct|258983007",
+    ],
+    "valueCodeableConcept.code": [None, None, None, None, None],
+    "valueCodeableConcept.text": [None, None, None, None, None],
+    "valueInteger": [None, None, None, None, None],
+}
+
+
+def test_load_data_one_to_many_multi_row():
+    load_data_one_to_many(
+        "tests/dummy_data/vital_signs_dummy_data.csv",
+        "tests/dummy_data/observation_dummy_mapping.csv",
+        Observation,
+        "observation_ingestion",
+    )
+
+    full_df = pd.read_parquet("observation_ingestion.parquet")
+
+    assert len(full_df) == 33
+
+    df_head = full_df.head(5)
+
+    assert_frame_equal(
+        df_head,
+        pd.DataFrame(OBS_FLAT),
+        check_dtype=False,
+        check_like=True,
+    )
+    os.remove("observation_ingestion.parquet")

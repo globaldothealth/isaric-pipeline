@@ -18,11 +18,13 @@ def create_codeable_concept(
 
     # for reading in from ingestion pipeline
     if (name + ".code" and name + ".system") in old_dict:
+        code = old_dict[name + ".code"]
+        formatted_code = code if isinstance(code, str) else str(int(code))
         new_dict = {
             "coding": [
                 {
                     "system": old_dict[name + ".system"],
-                    "code": str(int(old_dict[name + ".code"])),
+                    "code": formatted_code,
                     "display": old_dict[name + ".text"],
                 }
             ]
@@ -75,9 +77,14 @@ def createQuantity(df, group):
     for attribute in df.keys():
         attr = attribute.split(".")[-1]
         if attr == "code":
-            system, code = df[group + ".code"].split("|")
-            quant["code"] = code
-            quant["system"] = system
+            if group + ".system" in df.keys():
+                # reading in from ingestion pipeline
+                quant["code"] = df[group + ".code"]
+                quant["system"] = df[group + ".system"]
+            else:
+                system, code = df[group + ".code"].split("|")
+                quant["code"] = code
+                quant["system"] = system
         else:
             quant[attr] = df[group + "." + attr]
 

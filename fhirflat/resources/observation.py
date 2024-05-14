@@ -92,13 +92,14 @@ class Observation(_Observation, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Observation:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Observation:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
         for field in {
             "encounter",
@@ -108,7 +109,7 @@ class Observation(_Observation, FHIRFlatBase):
             "specimen",
             "device",
         }.intersection(data.keys()):
-            data[field] = {"reference": data[field]}
+            data[field] = {"reference": str(data[field])}
 
         # add default status back in
         data["status"] = "final"
