@@ -91,10 +91,7 @@ class FHIRFlatBase(DomainResource):
             lambda x: cls.cleanup(x, json_data=False)
         )
 
-        data["fhir_flat"] = data["fhir"].apply(lambda x: x.to_flat())
-
-        # get the flat dataframe out into it's own variable
-        flat_df = pd.concat(data["fhir_flat"].tolist(), ignore_index=True)
+        flat_df = data["fhir"].apply(lambda x: x.to_flat())
 
         # Stops parquet conversion from stripping the time from mixed date/datetime
         # columns
@@ -168,10 +165,10 @@ class FHIRFlatBase(DomainResource):
 
         df.to_parquet(output_name)
 
-    def to_flat(self, filename: str | None = None) -> None:
+    def to_flat(self, filename: str | None = None) -> None | pd.Series:
         """
         Generates a FHIRflat parquet file from the resource.
-        If no file name is provided, returns the pandas dataframe.
+        If no file name is provided, returns a pandas Series.
 
         Parameters
         ----------
@@ -196,4 +193,5 @@ class FHIRFlatBase(DomainResource):
         if filename:
             flat_df.to_parquet(filename)
         else:
-            return flat_df
+            assert flat_df.shape[0] == 1
+            return flat_df.loc[0]
