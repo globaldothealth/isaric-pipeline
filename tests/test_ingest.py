@@ -1,9 +1,13 @@
-from fhirflat.ingest import load_data, load_data_one_to_many, convert_data_to_flat
+from fhirflat.ingest import (
+    create_dictionary,
+    convert_data_to_flat,
+)
 from fhirflat.resources.encounter import Encounter
 from fhirflat.resources.observation import Observation
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import os
+import shutil
 from decimal import Decimal
 
 
@@ -28,12 +32,13 @@ ENCOUNTER_SINGLE_ROW_FLAT = {
 
 
 def test_load_data_one_to_one_single_row():
-    load_data(
+    df = create_dictionary(
         "tests/dummy_data/encounter_dummy_data_single.csv",
         "tests/dummy_data/encounter_dummy_mapping.csv",
-        Encounter,
-        "encounter_ingestion_single",
+        one_to_one=True,
     )
+
+    Encounter.ingest_to_flat(df, "encounter_ingestion_single")
 
     assert_frame_equal(
         pd.read_parquet("encounter_ingestion_single.parquet"),
@@ -129,12 +134,13 @@ ENCOUNTER_SINGLE_ROW_MULTI = {
 
 
 def test_load_data_one_to_one_multi_row():
-    load_data(
+    df = create_dictionary(
         "tests/dummy_data/encounter_dummy_data_multi.csv",
         "tests/dummy_data/encounter_dummy_mapping.csv",
-        Encounter,
-        "encounter_ingestion_multi",
+        one_to_one=True,
     )
+
+    Encounter.ingest_to_flat(df, "encounter_ingestion_multi")
 
     assert_frame_equal(
         pd.read_parquet("encounter_ingestion_multi.parquet"),
@@ -212,12 +218,13 @@ OBS_FLAT = {
 
 
 def test_load_data_one_to_many_multi_row():
-    load_data_one_to_many(
+    df = create_dictionary(
         "tests/dummy_data/vital_signs_dummy_data.csv",
         "tests/dummy_data/observation_dummy_mapping.csv",
-        Observation,
-        "observation_ingestion",
+        one_to_one=False,
     )
+
+    Observation.ingest_to_flat(df.dropna(), "observation_ingestion")
 
     full_df = pd.read_parquet("observation_ingestion.parquet")
 
@@ -235,6 +242,7 @@ def test_load_data_one_to_many_multi_row():
 
 
 def test_convert_data_to_flat_local_mapping():
+    output_folder = "tests/ingestion_output"
     mappings = {
         Encounter: "tests/dummy_data/encounter_dummy_mapping.csv",
         Observation: "tests/dummy_data/observation_dummy_mapping.csv",
@@ -244,7 +252,7 @@ def test_convert_data_to_flat_local_mapping():
     convert_data_to_flat(
         "tests/dummy_data/combined_dummy_data.csv",
         mapping_files_types=(mappings, resource_types),
-        folder_name="tests/ingestion_output",
+        folder_name=output_folder,
     )
 
     encounter_df = pd.read_parquet("tests/ingestion_output/encounter.parquet")
@@ -267,3 +275,5 @@ def test_convert_data_to_flat_local_mapping():
         check_dtype=False,
         check_like=True,
     )
+
+    shutil.rmtree(output_folder)

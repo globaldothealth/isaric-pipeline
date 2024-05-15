@@ -2,10 +2,6 @@
 Stores the main functions for converting clinical data (initally from RedCap-ARCH) to
 FHIRflat.
 
-Assumes two files are provided: one with the clinical data and one containing the
-mappings. PL: Actually, maybe rather than the mappings it's either a file or a
-dictionary showing the location of each mapping file (one per resource type).
-
 TODO: Eventually, this should link to a google sheet file that contains the mappings
 """
 
@@ -190,20 +186,6 @@ def create_dictionary(
             create_dict_from_cell, args=[data, map_df], axis=1
         )
         return melted_data["flat_dict"].to_frame()
-
-
-def load_data(data, mapping_files, resource_type, file_name):
-
-    df = create_dictionary(data, mapping_files, one_to_one=True)
-
-    resource_type.ingest_to_flat(df, file_name)
-
-
-def load_data_one_to_many(data, mapping_files, resource_type, file_name):
-
-    df = create_dictionary(data, mapping_files, one_to_one=False)
-
-    resource_type.ingest_to_flat(df.dropna(), file_name)
 
 
 def convert_data_to_flat(
