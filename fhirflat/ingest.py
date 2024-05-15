@@ -12,6 +12,7 @@ TODO: Eventually, this should link to a google sheet file that contains the mapp
 import pandas as pd
 import numpy as np
 import warnings
+import os
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
 # 1:M (single row, multiple resources) mapping: Observation, Condition, Procedure, ...
@@ -203,3 +204,54 @@ def load_data_one_to_many(data, mapping_files, resource_type, file_name):
     df = create_dictionary(data, mapping_files, one_to_one=False)
 
     resource_type.ingest_to_flat(df.dropna(), file_name)
+
+
+def convert_data_to_flat(
+    data: str,
+    folder_name: str,
+    mapping_files_types: tuple[dict, dict] | None = None,
+    sheet_id: str | None = None,
+):
+    """
+    Takes raw clinical data (currently assumed to be a one-row-per-patient format like
+    RedCap exports) and produces a folder of FHIRflat files, one per resource. Takes
+    either local mapping files, or a Google Sheet ID containing the mapping files.
+
+    Parameters
+    ----------
+    data: str
+        The path to the raw clinical data file.
+    folder_name: str
+        The name of the folder to store the FHIRflat files.
+    mapping_files_types: tuple[dict, dict] | None
+        A tuple containing two dictionaries, one with the mapping files for each
+        resource type and one with the mapping type (either one-to-one or one-to-many)
+        for each resource type.
+    sheet_id: str | None
+        The Google Sheet ID containing the mapping files. The first sheet must contain
+        the mapping types - one column listing the resource name, and another describing
+        whether the mapping is one-to-one or one-to-many. The subsequent sheets must
+        be named by resource, and contain the mapping for that resource.
+    """
+
+    if not mapping_files_types and not sheet_id:
+        raise TypeError("Either mapping_files_types or sheet_id must be provided")
+
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    if mapping_files_types:
+        mappings, types = mapping_files_types
+        for resource, map_file in mappings.items():
+            t = types[resource.__name__]
+            if t == "one-to-one":
+                df = create_dictionary(data, map_file, one_to_one=True)
+            elif t == "one-to-many":
+                df = create_dictionary(data, map_file, one_to_one=False)
+                df = df.dropna().reset_index(drop=True)
+            else:
+                raise ValueError(f"Unknown mapping type {t}")
+
+            resource.ingest_to_flat(df, folder_name + "/" + resource.__name__.lower())
+    else:
+        pass

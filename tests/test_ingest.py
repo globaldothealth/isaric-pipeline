@@ -1,4 +1,4 @@
-from fhirflat.ingest import load_data, load_data_one_to_many
+from fhirflat.ingest import load_data, load_data_one_to_many, convert_data_to_flat
 from fhirflat.resources.encounter import Encounter
 from fhirflat.resources.observation import Observation
 import pandas as pd
@@ -232,3 +232,38 @@ def test_load_data_one_to_many_multi_row():
         check_like=True,
     )
     os.remove("observation_ingestion.parquet")
+
+
+def test_convert_data_to_flat_local_mapping():
+    mappings = {
+        Encounter: "tests/dummy_data/encounter_dummy_mapping.csv",
+        Observation: "tests/dummy_data/observation_dummy_mapping.csv",
+    }
+    resource_types = {"Encounter": "one-to-one", "Observation": "one-to-many"}
+
+    convert_data_to_flat(
+        "tests/dummy_data/combined_dummy_data.csv",
+        mapping_files_types=(mappings, resource_types),
+        folder_name="tests/ingestion_output",
+    )
+
+    encounter_df = pd.read_parquet("tests/ingestion_output/encounter.parquet")
+    obs_df = pd.read_parquet("tests/ingestion_output/observation.parquet")
+
+    assert_frame_equal(
+        encounter_df,
+        pd.DataFrame(ENCOUNTER_SINGLE_ROW_MULTI),
+        check_dtype=False,
+        check_like=True,
+    )
+
+    assert len(obs_df) == 33
+
+    obs_df_head = obs_df.head(5)
+
+    assert_frame_equal(
+        obs_df_head,
+        pd.DataFrame(OBS_FLAT),
+        check_dtype=False,
+        check_like=True,
+    )

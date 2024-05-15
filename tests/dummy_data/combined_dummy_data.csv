@@ -1,0 +1,5 @@
+﻿usubjid,visitid,dates_enrolment,dates_adm,dates_admdate,dates_admtime,non_encounter_field,outco_denguediag,outco_denguediag_main,outco_denguediag_class,outco_not_dengue,outco_secondiag_oth,outco_date,outco_outcome,daily_date,vital_highesttem_c,vital_hr,vital_rr,vital_systolicbp,vital_diastolicbp,vital_spo2,vital_fio2spo2_02110,vital_fio2spo2_pcnt,vital_capillaryr,vital_avpu,vital_gcs,vital_urineflow
+1,10,2020-05-01,0,,,,,,,cough,,,7,2020-01-01,36.2,120,30,70,120,5,,75,1,1,1,150
+2,11,,1,2021-04-01,18:00,fish,1,,2,,,2021-04-10,1,2021-02-02,37,100,40,80,130,6,10,85,0,2,1,200
+3,12,,1,2021-05-10,17:30,,1,,1,flu,,2021-05-15,4,2022-03-03,35.5,70,50,90,140,7,,95,0,3,1,
+4,13,,1,2022-06-15,21:00,dolphin,0,Malaria,,,,2022-06-20,2,,,,,,,,,,,,,
