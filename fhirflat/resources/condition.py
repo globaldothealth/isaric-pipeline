@@ -42,13 +42,14 @@ class Condition(_Condition, FHIRFlatBase):
         return descrip
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Condition:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Condition:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
         data["encounter"] = {"reference": data["encounter"]}
         data["subject"] = {"reference": data["subject"]}

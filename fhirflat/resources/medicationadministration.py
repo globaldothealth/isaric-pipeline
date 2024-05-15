@@ -26,23 +26,29 @@ class MedicationAdministration(_MedicationAdministration, FHIRFlatBase):
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> MedicationAdministration:
+    def cleanup(
+        cls, data: JsonString | dict, json_data=True
+    ) -> MedicationAdministration:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
-        for field in ({
-            "basedOn",
-            "partOf",
-            "subject",
-            "encounter",
-            "supportingInformation",
-            "request",
-            "eventHistory",
-         } | {x for x in data.keys() if x.endswith(".reference")}).intersection(data.keys()):
+        for field in (
+            {
+                "basedOn",
+                "partOf",
+                "subject",
+                "encounter",
+                "supportingInformation",
+                "request",
+                "eventHistory",
+            }
+            | {x for x in data.keys() if x.endswith(".reference")}
+        ).intersection(data.keys()):
             data[field] = {"reference": data[field]}
 
         # add default status back in

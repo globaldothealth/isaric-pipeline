@@ -81,13 +81,14 @@ class Procedure(_Procedure, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Procedure:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Procedure:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
         for field in {
             "partOf",

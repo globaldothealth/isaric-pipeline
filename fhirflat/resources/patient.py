@@ -69,9 +69,10 @@ class Patient(Patient, FHIRFlatBase):
         return descrip
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Patient:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Patient:
         # Load the data and apply resource-specific changes
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
         # # Strip time from the birthDate
         if "birthDate" in data:

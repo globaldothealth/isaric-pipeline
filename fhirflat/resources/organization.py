@@ -20,13 +20,14 @@ class Organization(_Organization, FHIRFlatBase):
     )
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Organization:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Organization:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
         for field in {
             "partOf",

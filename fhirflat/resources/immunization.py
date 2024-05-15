@@ -65,17 +65,19 @@ class Immunization(_Immunization, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Immunization:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> Immunization:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data:
+            data = orjson.loads(data)
 
-        for field in ({"patient", "encounter", "location"} | {
-            x for x in data.keys() if x.endswith(".reference")
-        }).intersection(data.keys()):
+        for field in (
+            {"patient", "encounter", "location"}
+            | {x for x in data.keys() if x.endswith(".reference")}
+        ).intersection(data.keys()):
             data[field] = {"reference": data[field]}
 
         # add default status back in

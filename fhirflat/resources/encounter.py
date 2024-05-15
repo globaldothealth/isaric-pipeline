@@ -24,8 +24,8 @@ class Encounter(_Encounter, FHIRFlatBase):
         title="List of `Extension` items (represented as `dict` in JSON)",
         description=(
             """
-            Contains the Global.health 'eventTiming' and 'relativePeriod' extensions, and allows
-             extensions from other implementations to be included.
+            Contains the Global.health 'eventTiming' and 'relativePeriod' extensions,
+            and allows extensions from other implementations to be included.
             """
         ),
         # if property is element of this resource.
