@@ -35,6 +35,7 @@ def test_load_data_one_to_one_single_row():
     df = create_dictionary(
         "tests/dummy_data/encounter_dummy_data_single.csv",
         "tests/dummy_data/encounter_dummy_mapping.csv",
+        "Encounter",
         one_to_one=True,
     )
 
@@ -137,6 +138,7 @@ def test_load_data_one_to_one_multi_row():
     df = create_dictionary(
         "tests/dummy_data/encounter_dummy_data_multi.csv",
         "tests/dummy_data/encounter_dummy_mapping.csv",
+        "Encounter",
         one_to_one=True,
     )
 
@@ -221,6 +223,7 @@ def test_load_data_one_to_many_multi_row():
     df = create_dictionary(
         "tests/dummy_data/vital_signs_dummy_data.csv",
         "tests/dummy_data/observation_dummy_mapping.csv",
+        "Observation",
         one_to_one=False,
     )
 

@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import warnings
 import os
+from fhirflat.util import get_local_resource
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
 # 1:M (single row, multiple resources) mapping: Observation, Condition, Procedure, ...
@@ -132,7 +133,7 @@ def create_dict_from_cell(row, full_df, map_df):
 
 
 def create_dictionary(
-    data: pd.DataFrame, map_file: pd.DataFrame, one_to_one=False
+    data: pd.DataFrame, map_file: pd.DataFrame, resource: str, one_to_one=False
 ) -> pd.DataFrame:
     """
     Given a data file and a single mapping file for one FHIR resource type,
@@ -146,6 +147,8 @@ def create_dictionary(
     map_file: pd.DataFrame
         The mapping file containing the mapping of the clinical data to the FHIR
         resource.
+    resource: str
+        The name of the resource being mapped.
     one_to_one: bool
         Whether the resource should be mapped as one-to-one or one-to-many.
     """
@@ -155,11 +158,14 @@ def create_dictionary(
 
     # setup the data -----------------------------------------------------------
     relevant_cols = map_df["redcap_variable"].dropna().unique()
+    filtered_data = data.loc[:, data.columns.isin(relevant_cols)].copy()
 
-    if one_to_one:
-        filtered_data = data[relevant_cols].copy()
-    else:
-        filtered_data = data.loc[:, data.columns.isin(relevant_cols)].reset_index()
+    if filtered_data.empty:
+        warnings.warn(f"No data found for the {resource} resource.", UserWarning)
+        return None
+
+    if not one_to_one:
+        filtered_data = filtered_data.reset_index()
         melted_data = filtered_data.melt(id_vars="index", var_name="column")
 
     # set up the mappings -------------------------------------------------------
@@ -224,16 +230,38 @@ def convert_data_to_flat(
 
     if mapping_files_types:
         mappings, types = mapping_files_types
-        for resource, map_file in mappings.items():
-            t = types[resource.__name__]
-            if t == "one-to-one":
-                df = create_dictionary(data, map_file, one_to_one=True)
-            elif t == "one-to-many":
-                df = create_dictionary(data, map_file, one_to_one=False)
-                df = df.dropna().reset_index(drop=True)
-            else:
-                raise ValueError(f"Unknown mapping type {t}")
-
-            resource.ingest_to_flat(df, folder_name + "/" + resource.__name__.lower())
     else:
-        pass
+        sheet_link = (
+            f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+        )
+
+        df_types = pd.read_csv(sheet_link, header=0, index_col="Resources")
+        types = dict(
+            zip(
+                df_types.index,
+                df_types["Resource Type"],
+            )
+        )
+        sheet_keys = {r: df_types.loc[r, "Sheet ID"] for r in types.keys()}
+        mappings = {
+            get_local_resource(r): sheet_link + f"&gid={i}"
+            for r, i in sheet_keys.items()
+        }
+
+    for resource, map_file in mappings.items():
+
+        t = types[resource.__name__]
+        if t == "one-to-one":
+            df = create_dictionary(data, map_file, resource.__name__, one_to_one=True)
+            if df is None:
+                continue
+        elif t == "one-to-many":
+            df = create_dictionary(data, map_file, resource.__name__, one_to_one=False)
+            if df is None:
+                continue
+            else:
+                df = df.dropna().reset_index(drop=True)
+        else:
+            raise ValueError(f"Unknown mapping type {t}")
+
+        resource.ingest_to_flat(df, folder_name + "/" + resource.__name__.lower())
