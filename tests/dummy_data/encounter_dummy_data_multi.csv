@@ -1,5 +1,5 @@
 ﻿usubjid,visitid,dates_enrolment,dates_adm,dates_admdate,dates_admtime,non_encounter_field,outco_denguediag,outco_denguediag_main,outco_denguediag_class,outco_not_dengue,outco_secondiag_oth,outco_date,outco_outcome
-1,10,2020-05-01,0,,,,,,,cough,,,7
-2,11,,1,2021-04-01,18:00,fish,1,,2,,,2021-04-10,1
-3,12,,1,2021-05-10,17:30,,1,,1,flu,,2021-05-15,4
-4,13,,1,2022-06-15,21:00,dolphin,0,Malaria,,,,2022-06-20,2
+p1,e10,2020-05-01,0,,,,,,,cough,,,7
+p2,e11,,1,2021-04-01,18:00,fish,1,,2,,,2021-04-10,1
+p3,e12,,1,2021-05-10,17:30,,1,,1,flu,,2021-05-15,4
+p4,e13,,1,2022-06-15,21:00,dolphin,0,Malaria,,,,2022-06-20,2

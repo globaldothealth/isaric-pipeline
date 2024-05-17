@@ -6,6 +6,8 @@ import pandas as pd
 import orjson
 
 from ..fhir2flat import fhir2flat
+from ..flat2fhir import expand_concepts
+
 from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
@@ -23,6 +25,8 @@ class FHIRFlatBase(DomainResource):
     )
 
     flat_defaults: ClassVar[list[str]] = []
+
+    backbone_elements: ClassVar[dict] = {}
 
     @classmethod
     def attr_lists(cls) -> list[str]:
@@ -74,17 +78,49 @@ class FHIRFlatBase(DomainResource):
             return list(df["fhir"])
 
     @classmethod
+    def ingest_backbone_elements(cls, mapped_data: pd.Series):
+        """
+        Takes ordered lists of data and forms the correct FHIR format which won't
+        be flattened after ingestion.
+        """
+
+        def fhir_format(row):
+            for b_e, b_c in cls.backbone_elements.items():
+                keys_present = [key for key in row if key.startswith(b_e)]
+                if keys_present:
+                    condensed_dict = {k: row[k] for k in keys_present}
+                    if all(
+                        not isinstance(v, list) or len(v) == 1
+                        for v in condensed_dict.values()
+                    ):
+                        continue
+                    else:
+                        backbone_list = []
+                        for i in range(len(next(iter(condensed_dict.values())))):
+                            first_item = {
+                                k.lstrip(b_e + "."): v[i]
+                                for k, v in condensed_dict.items()
+                            }
+                            backbone_list.append(expand_concepts(first_item, b_c))
+                        for k_d in condensed_dict:
+                            row.pop(k_d)
+                        row[b_e] = backbone_list
+            return row
+
+        mapped_data.apply(fhir_format)
+        return mapped_data
+
+    @classmethod
     def ingest_to_flat(cls, data: pd.DataFrame, filename: str):
         """
         Takes a pandas dataframe and populates the resource with the data.
+        Creates a FHIRflat parquet file for the resources.
 
         data: pd.DataFrame
             Pandas dataframe containing the data
-
-        Returns
-        -------
-        FHIRFlatBase or list[FHIRFlatBase]
         """
+
+        data["flat_dict"] = cls.ingest_backbone_elements(data["flat_dict"])
 
         # Creates a columns of FHIR resource instances
         data["fhir"] = data["flat_dict"].apply(

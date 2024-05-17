@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import warnings
 import os
+from math import isnan
 from fhirflat.util import get_local_resource
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
@@ -16,7 +17,7 @@ from fhirflat.util import get_local_resource
 
 """
 TODO
-* sort out reference formatting
+* sort out reference formatting + how to choose ID's e.g. location within encounter etc
 * cope with 'if' statements - e.g. for date overwriting.
 * deal with duplicates/how to add multiple values to a single field - list options.
 * Consider using pandarallel (https://pypi.org/project/pandarallel/) to parallelize
@@ -37,6 +38,14 @@ def find_field_value(row, response, mapp, raw_data=None):
         results = [find_field_value(row, response, m) for m in mapp]
         results = [x for x in results if x == x]
         return " ".join(results)
+    elif "if not" in mapp:
+        mapp = mapp.replace(" ", "").split("ifnot")
+        results = [find_field_value(row, response, m) for m in mapp]
+        x, y = results
+        if isinstance(y, float):
+            return x if isnan(y) else None
+        else:
+            return x if not y else None
     else:
         col = mapp.lstrip("<").rstrip(">")
         try:
@@ -90,11 +99,14 @@ def create_dict_from_row(row, map_df):
                 result[key] == snippet[key] for key in duplicate_keys
             ):  # Ignore duplicates if they are the same
                 continue
+            elif all(result[key] is None for key in duplicate_keys):
+                result.update(snippet)
             else:
-                raise ValueError(
-                    "Duplicate keys in mapping:"
-                    f" {set(result.keys()).intersection(snippet.keys())}"
-                )
+                for key in duplicate_keys:
+                    if isinstance(result[key], list):
+                        result[key].append(snippet[key])
+                    else:
+                        result[key] = [result[key], snippet[key]]
     return result
 
 

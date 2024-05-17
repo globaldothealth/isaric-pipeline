@@ -1,5 +1,12 @@
 from __future__ import annotations
 from fhir.resources.encounter import Encounter as _Encounter
+from fhir.resources.encounter import (
+    EncounterAdmission,
+    EncounterDiagnosis,
+    EncounterLocation,
+    EncounterParticipant,
+    EncounterReason,
+)
 from .base import FHIRFlatBase
 import orjson
 
@@ -36,7 +43,6 @@ class Encounter(_Encounter, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
-        "id",
         "identifier",
         "participant",  # participants other than the patient
         "appointment",  # appointment that scheduled the encounter
@@ -48,6 +54,14 @@ class Encounter(_Encounter, FHIRFlatBase):
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+
+    backbone_elements: ClassVar[dict] = {
+        "participant": EncounterParticipant,
+        "reason": EncounterReason,
+        "diagnosis": EncounterDiagnosis,
+        "admission": EncounterAdmission,
+        "location": EncounterLocation,
+    }
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):

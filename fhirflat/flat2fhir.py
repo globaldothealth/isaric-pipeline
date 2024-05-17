@@ -19,16 +19,28 @@ def create_codeable_concept(
     # for reading in from ingestion pipeline
     if (name + ".code" and name + ".system") in old_dict:
         code = old_dict[name + ".code"]
-        formatted_code = code if isinstance(code, str) else str(int(code))
-        new_dict = {
-            "coding": [
-                {
-                    "system": old_dict[name + ".system"],
-                    "code": formatted_code,
-                    "display": old_dict[name + ".text"],
-                }
-            ]
-        }
+        if isinstance(code, list) and len(code) > 1:
+            new_dict = {"coding": []}
+            for system, code, name in zip(
+                old_dict[name + ".system"], code, old_dict[name + ".text"]
+            ):
+                formatted_code = code if isinstance(code, str) else str(int(code))
+                display = name
+
+                subdict = {"system": system, "code": code, "display": display}
+
+                new_dict["coding"].append(subdict)
+        else:
+            formatted_code = code if isinstance(code, str) else str(int(code))
+            new_dict = {
+                "coding": [
+                    {
+                        "system": old_dict[name + ".system"],
+                        "code": formatted_code,
+                        "display": old_dict[name + ".text"],
+                    }
+                ]
+            }
         return new_dict
 
     # From FHIRflat file

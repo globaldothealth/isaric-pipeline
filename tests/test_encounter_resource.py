@@ -176,6 +176,7 @@ ENCOUNTER_DICT_INPUT = {
 
 ENCOUNTER_FLAT = {
     "resourceType": "Encounter",
+    "id": "f203",
     "extension.timingPhase.code": "http://snomed.info/sct|278307001",
     "extension.timingPhase.text": "on admission",
     "extension.relativePeriod.relativeStart": 2,
@@ -236,6 +237,7 @@ ENCOUNTER_FLAT = {
 
 ENCOUNTER_DICT_OUT = {
     "resourceType": "Encounter",
+    "id": "f203",
     "status": "completed",
     "extension": [
         {

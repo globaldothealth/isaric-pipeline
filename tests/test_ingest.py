@@ -11,23 +11,117 @@ import shutil
 from decimal import Decimal
 
 
+ENCOUNTER_DICT_OUT = {
+    "id": 11,
+    "subject": 2,
+    "actualPeriod.start": "2021-04-01 18:00",
+    "actualPeriod.end": "2021-04-10",
+    "extension.timingPhase.system": "https://snomed.info/sct",
+    "extension.timingPhase.code": 278307001,
+    "extension.timingPhase.text": "On admission (qualifier value)",
+    "class.system": "https://snomed.info/sct",
+    "class.code": 32485007,
+    "class.text": "Hospital admission (procedure)",
+    "diagnosis.condition.concept.system": [
+        "https://snomed.info/sct",
+        "https://snomed.info/sct",
+    ],
+    "diagnosis.condition.concept.code": [38362002, 722863008],
+    "diagnosis.condition.concept.text": [
+        "Dengue (disorder)",
+        "Dengue with warning signs (disorder)",
+    ],
+    "diagnosis.use.system": ["https://snomed.info/sct", "https://snomed.info/sct"],
+    "diagnosis.use.code": [89100005, 89100005],
+    "diagnosis.use.text": [
+        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
+        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
+    ],
+    "admission.dischargeDisposition.system": "https://snomed.info/sct",
+    "admission.dischargeDisposition.code": 371827001,
+    "admission.dischargeDisposition.text": "Patient discharged alive (finding)",
+}
+
+
+def test_create_dict_one_to_one_single_row():
+    df = create_dictionary(
+        "tests/dummy_data/encounter_dummy_data_single.csv",
+        "tests/dummy_data/encounter_dummy_mapping.csv",
+        "Encounter",
+        one_to_one=True,
+    )
+
+    dict_out = df["flat_dict"][0]
+
+    assert dict_out == ENCOUNTER_DICT_OUT
+
+
 ENCOUNTER_SINGLE_ROW_FLAT = {
     "resourceType": "Encounter",
+    "id": "11",
     "class.code": "https://snomed.info/sct|32485007",
     "class.text": "Hospital admission (procedure)",
-    "reason.use.code": "https://snomed.info/sct|89100005",
-    "reason.use.text": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
-    "reason.value.concept.code": "https://snomed.info/sct|38362002",
-    "reason.value.concept.text": "Dengue (disorder)",
-    "diagnosis.condition.concept.code": "https://snomed.info/sct|722863008",
-    "diagnosis.condition.concept.text": "Dengue with warning signs (disorder)",
-    "diagnosis.use.code": "https://snomed.info/sct|89100005",
-    "diagnosis.use.text": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+    "diagnosis_dense": [
+        {
+            "condition": [
+                {
+                    "concept": {
+                        "coding": [
+                            {
+                                "code": "38362002",
+                                "display": "Dengue (disorder)",
+                                "system": "https://snomed.info/sct",
+                            }
+                        ]
+                    }
+                }
+            ],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "code": "89100005",
+                            "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                            "system": "https://snomed.info/sct",
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "condition": [
+                {
+                    "concept": {
+                        "coding": [
+                            {
+                                "system": "https://snomed.info/sct",
+                                "code": "722863008",
+                                "display": "Dengue with warning signs (disorder)",
+                            }
+                        ]
+                    }
+                }
+            ],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "code": "89100005",
+                            "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                            "system": "https://snomed.info/sct",
+                        }
+                    ]
+                }
+            ],
+        },
+    ],
     "subject": "2",
     "actualPeriod.start": "2021-04-01 18:00:00",
     "actualPeriod.end": "2021-04-10",
     "admission.dischargeDisposition.code": "https://snomed.info/sct|371827001",
     "admission.dischargeDisposition.text": "Patient discharged alive (finding)",
+    "extension.timingPhase.code": ["https://snomed.info/sct|278307001"],
+    "extension.timingPhase.text": ["On admission (qualifier value)"],
 }
 
 
@@ -52,61 +146,149 @@ def test_load_data_one_to_one_single_row():
 ENCOUNTER_SINGLE_ROW_MULTI = {
     "resourceType": ["Encounter", "Encounter", "Encounter", "Encounter"],
     "class.code": [
-        "https://snomed.info/sct|32485007",
+        "https://snomed.info/sct|371883000",
         "https://snomed.info/sct|32485007",
         "https://snomed.info/sct|32485007",
         "https://snomed.info/sct|32485007",
     ],
     "class.text": [
-        "Hospital admission (procedure)",
+        "Outpatient procedure (procedure)",
         "Hospital admission (procedure)",
         "Hospital admission (procedure)",
         "Hospital admission (procedure)",
     ],
-    "reason.use.code": [
+    "diagnosis_dense": [
         None,
-        "https://snomed.info/sct|89100005",
-        "https://snomed.info/sct|89100005",
-        None,
-    ],
-    "reason.use.text": [
-        None,
-        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
-        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
-        None,
-    ],
-    "reason.value.concept.code": [
-        None,
-        "https://snomed.info/sct|38362002",
-        "https://snomed.info/sct|38362002",
-        None,
-    ],
-    "reason.value.concept.text": [None, "Dengue (disorder)", "Dengue (disorder)", None],
-    "diagnosis.condition.concept.code": [
-        None,
-        "https://snomed.info/sct|722863008",
-        "https://snomed.info/sct|722862003",
+        [
+            {
+                "condition": [
+                    {
+                        "concept": {
+                            "coding": [
+                                {
+                                    "code": "38362002",
+                                    "display": "Dengue (disorder)",
+                                    "system": "https://snomed.info/sct",
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "use": [
+                    {
+                        "coding": [
+                            {
+                                "code": "89100005",
+                                "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                                "system": "https://snomed.info/sct",
+                            }
+                        ]
+                    }
+                ],
+            },
+            {
+                "condition": [
+                    {
+                        "concept": {
+                            "coding": [
+                                {
+                                    "code": "722863008",
+                                    "display": "Dengue with warning signs (disorder)",
+                                    "system": "https://snomed.info/sct",
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "use": [
+                    {
+                        "coding": [
+                            {
+                                "code": "89100005",
+                                "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                                "system": "https://snomed.info/sct",
+                            }
+                        ]
+                    }
+                ],
+            },
+        ],
+        [
+            {
+                "condition": [
+                    {
+                        "concept": {
+                            "coding": [
+                                {
+                                    "code": "38362002",
+                                    "display": "Dengue (disorder)",
+                                    "system": "https://snomed.info/sct",
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "use": [
+                    {
+                        "coding": [
+                            {
+                                "code": "89100005",
+                                "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                                "system": "https://snomed.info/sct",
+                            }
+                        ]
+                    }
+                ],
+            },
+            {
+                "condition": [
+                    {
+                        "concept": {
+                            "coding": [
+                                {
+                                    "code": "722862003",
+                                    "display": "Dengue without warning signs (disorder)",  # noqa: E501
+                                    "system": "https://snomed.info/sct",
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "use": [
+                    {
+                        "coding": [
+                            {
+                                "code": "89100005",
+                                "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                                "system": "https://snomed.info/sct",
+                            }
+                        ]
+                    }
+                ],
+            },
+        ],
         None,
     ],
     "diagnosis.condition.concept.text": [
         None,
-        "Dengue with warning signs (disorder)",
-        "Dengue without warning signs (disorder)",
         None,
+        None,
+        "Malaria",
     ],
     "diagnosis.use.code": [
         None,
-        "https://snomed.info/sct|89100005",
-        "https://snomed.info/sct|89100005",
+        None,
+        None,
         "https://snomed.info/sct|89100005",
     ],
     "diagnosis.use.text": [
         None,
-        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
-        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
+        None,
+        None,
         "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
     ],
-    "subject": ["1", "2", "3", "4"],
+    "subject": ["p1", "p2", "p3", "p4"],
+    "id": ["e10", "e11", "e12", "e13"],
     "actualPeriod.start": [
         "2020-05-01",
         "2021-04-01 18:00:00",
@@ -130,6 +312,18 @@ ENCOUNTER_SINGLE_ROW_MULTI = {
         "Patient discharged alive (finding)",
         "Dead (finding)",
         "Hospital admission (procedure)",
+    ],
+    "extension.timingPhase.code": [
+        ["https://snomed.info/sct|281379000"],
+        ["https://snomed.info/sct|278307001"],
+        ["https://snomed.info/sct|278307001"],
+        ["https://snomed.info/sct|278307001"],
+    ],
+    "extension.timingPhase.text": [
+        ["Pre-admission (qualifier value)"],
+        ["On admission (qualifier value)"],
+        ["On admission (qualifier value)"],
+        ["On admission (qualifier value)"],
     ],
 }
 
@@ -196,8 +390,8 @@ OBS_FLAT = {
         "Heart rate",
         "Heart rate",
     ],
-    "subject": ["1", "2", "3", "1", "2"],
-    "encounter": ["10", "11", "12", "10", "11"],
+    "subject": ["p1", "p2", "p3", "p1", "p2"],
+    "encounter": ["e10", "e11", "e12", "e10", "e11"],
     "valueQuantity.value": [Decimal("36.2"), 37.0, 35.5, 120.0, 100.0],
     "valueQuantity.unit": [
         "DegreesCelsius",
