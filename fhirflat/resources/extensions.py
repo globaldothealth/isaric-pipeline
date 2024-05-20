@@ -453,6 +453,78 @@ class Race(_DataType):
         ]
 
 
+class presenceAbsence(_DataType):
+    """
+    An ISARIC extension to indicate if a clinical finding is present, absent or unknown.
+    """
+
+    resource_type = Field("presenceAbsence", const=True)
+
+    url = Field("presenceAbsence", const=True, alias="url")
+
+    valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
+        None,
+        alias="valueCodeableConcept",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        element_required=True,
+    )
+
+    @classmethod
+    def elements_sequence(cls):
+        """returning all elements names from
+        ``Extension`` according specification,
+        with preserving original sequence order.
+        """
+        return [
+            "id",
+            "extension",
+            "url",
+            "valueCodeableConcept",
+        ]
+
+
+class prespecifiedQuery(_DataType):
+    """
+    An ISARIC extension to indicate if a finding is the result of a prespecified query.
+    """
+
+    resource_type = Field("prespecifiedQuery", const=True)
+
+    url = Field("prespecifiedQuery", const=True, alias="url")
+
+    valueBoolean: bool = Field(
+        None,
+        alias="valueBoolean",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        elementRequired=True,
+    )
+
+    @classmethod
+    def elements_sequence(cls):
+        """returning all elements names from
+        ``Extension`` according specification,
+        with preserving original sequence order.
+        """
+        return [
+            "id",
+            "extension",
+            "url",
+            "valueBoolean",
+        ]
+
+
 # ------------------- extension types ------------------------------
 
 

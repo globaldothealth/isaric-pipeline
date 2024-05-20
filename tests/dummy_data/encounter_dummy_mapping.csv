@@ -1,4 +1,4 @@
-﻿redcap_variable,redcap_response,id,subject,extension.timingPhase.system,extension.timingPhase.code,extension.timingPhase.text,class.system,class.code,class.text,actualPeriod.start,actualPeriod.end,diagnosis.condition.concept.system,diagnosis.condition.concept.code,diagnosis.condition.concept.text,diagnosis.use.system,diagnosis.use.code,diagnosis.use.text,admission.dischargeDisposition.system,admission.dischargeDisposition.code,admission.dischargeDisposition.text
+﻿raw_variable,raw_response,id,subject,extension.timingPhase.system,extension.timingPhase.code,extension.timingPhase.text,class.system,class.code,class.text,actualPeriod.start,actualPeriod.end,diagnosis.condition.concept.system,diagnosis.condition.concept.code,diagnosis.condition.concept.text,diagnosis.use.system,diagnosis.use.code,diagnosis.use.text,admission.dischargeDisposition.system,admission.dischargeDisposition.code,admission.dischargeDisposition.text
 usubjid,,,Patient/+<FIELD>,,,,,,,,,,,,,,,,,
 visitid,,<FIELD>,,,,,,,,,,,,,,,,,,
 dates_enrolment,,,,,,,,,,<FIELD> if not <dates_admdate>,<FIELD> if not <dates_admdate>,,,,,,,,,

@@ -55,5 +55,13 @@ class raceType(AbstractType):
     __resource_type__ = "Race"
 
 
+class presenceAbsenceType(AbstractType):
+    __resource_type__ = "presenceAbsence"
+
+
+class prespecifiedQueryType(AbstractType):
+    __resource_type__ = "prespecifiedQuery"
+
+
 class dateTimeExtensionType(AbstractType):
     __resource_type__ = "dateTimeExtension"

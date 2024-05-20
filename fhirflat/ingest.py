@@ -35,7 +35,7 @@ def find_field_value(row, response, mapp, raw_data=None):
     elif "+" in mapp:
         mapp = mapp.split("+")
         results = [find_field_value(row, response, m, raw_data) for m in mapp]
-        results = [str(x) for x in results if x == x]
+        results = [str(x) for x in results if not (isinstance(x, float) and isnan(x))]
         return " ".join(results) if "/" not in results[0] else "".join(results)
     elif "if not" in mapp:
         mapp = mapp.replace(" ", "").split("ifnot")
@@ -55,10 +55,11 @@ def find_field_value(row, response, mapp, raw_data=None):
         return mapp
 
 
-def create_dict_from_row(row, map_df):
+def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> pd.Series:
     """
-    Iterates through the columns of the row, applying the mapping to each columns
-    and produces a fhirflat-like dictionary to initialize the resource object.
+    Takes a wide-format dataframe and iterates through the columns of the row,
+    applying the mapping to each column and produces a fhirflat-like dictionary to
+    initialize the resource object for each row.
     """
 
     result = {}
@@ -111,10 +112,12 @@ def create_dict_from_row(row, map_df):
     return result
 
 
-def create_dict_from_cell(row, full_df, map_df):
+def create_dict_long(
+    row: pd.Series, full_df: pd.DataFrame, map_df: pd.DataFrame
+) -> pd.Series:
     """
-    Iterates through the columns of the row, applying the mapping to each columns
-    and produces a fhirflat-like dictionary to initialize the resource object.
+    Takes a long-format dataframe and a mapping file, and produces a fhirflat-like
+    dictionary for each row in the dataframe.
     """
 
     column = row["column"]
@@ -170,7 +173,7 @@ def create_dictionary(
     map_df = pd.read_csv(map_file, header=0)
 
     # setup the data -----------------------------------------------------------
-    relevant_cols = map_df["redcap_variable"].dropna().unique()
+    relevant_cols = map_df["raw_variable"].dropna().unique()
     filtered_data = data.loc[:, data.columns.isin(relevant_cols)].copy()
 
     if filtered_data.empty:
@@ -183,26 +186,26 @@ def create_dictionary(
 
     # set up the mappings -------------------------------------------------------
 
-    # Fills the na redcap variables with the previous value
-    map_df["redcap_variable"] = map_df["redcap_variable"].ffill()
+    # Fills the na input variables with the previous value
+    map_df["raw_variable"] = map_df["raw_variable"].ffill()
 
-    # strips the text answers out of the redcap_response column
-    map_df["redcap_response"] = map_df["redcap_response"].apply(
+    # strips the text answers out of the response column
+    map_df["raw_response"] = map_df["raw_response"].apply(
         lambda x: x.split(",")[0] if isinstance(x, str) else x
     )
 
     # Set multi-index for easier access
-    map_df.set_index(["redcap_variable", "redcap_response"], inplace=True)
+    map_df.set_index(["raw_variable", "raw_response"], inplace=True)
 
     # Generate the flat_like dictionary
     if one_to_one:
         filtered_data["flat_dict"] = filtered_data.apply(
-            create_dict_from_row, args=[map_df], axis=1
+            create_dict_wide, args=[map_df], axis=1
         )
         return filtered_data
     else:
         melted_data["flat_dict"] = melted_data.apply(
-            create_dict_from_cell, args=[data, map_df], axis=1
+            create_dict_long, args=[data, map_df], axis=1
         )
         return melted_data["flat_dict"].to_frame()
 

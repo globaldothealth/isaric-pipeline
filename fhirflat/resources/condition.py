@@ -1,10 +1,14 @@
 from __future__ import annotations
 from fhir.resources.condition import Condition as _Condition
 from .base import FHIRFlatBase
+from .extension_types import presenceAbsenceType, prespecifiedQueryType, timingPhaseType
+from .extensions import presenceAbsence, prespecifiedQuery, timingPhase
 import orjson
 
 from ..flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+from typing import TypeAlias, ClassVar, Union
+from fhir.resources import fhirtypes
+from pydantic.v1 import Field, validator
 
 JsonString: TypeAlias = str
 
@@ -12,6 +16,27 @@ JsonString: TypeAlias = str
 
 
 class Condition(_Condition, FHIRFlatBase):
+    extension: list[
+        Union[
+            presenceAbsenceType,
+            prespecifiedQueryType,
+            timingPhaseType,
+            fhirtypes.ExtensionType,
+        ]
+    ] = Field(
+        None,
+        alias="extension",
+        title="Additional content defined by implementations",
+        description=(
+            """
+            Contains the G.H 'age' and 'birthSex' extensions,
+            and allows extensions from other implementations to be included."""
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        union_mode="smart",
+    )
+
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
         "id",
@@ -24,6 +49,20 @@ class Condition(_Condition, FHIRFlatBase):
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["clinicalStatus"]
+
+    @validator("extension")
+    def validate_extension_contents(cls, extensions):
+        present_count = sum(isinstance(item, presenceAbsence) for item in extensions)
+        query_count = sum(isinstance(item, prespecifiedQuery) for item in extensions)
+        timing_count = sum(isinstance(item, timingPhase) for item in extensions)
+
+        if present_count > 1 or query_count > 1 or timing_count > 1:
+            raise ValueError(
+                "presenceAbsence, prespecifiedQuery and timingPhase can only appear"
+                " once."
+            )
+
+        return extensions
 
     @classmethod
     def flat_descriptions(cls) -> dict[str, str]:

@@ -83,8 +83,10 @@ class FHIRFlatBase(DomainResource):
     @classmethod
     def ingest_backbone_elements(cls, mapped_data: pd.Series) -> pd.Series:
         """
-        Takes ordered lists of data and forms the correct FHIR format which won't
+        Unflattens ordered lists of data and forms the correct FHIR format which won't
         be flattened after ingestion (*_dense columns).
+
+        Extends the flat2fhir.expand_concepts function specifically for data ingestion.
 
         Parameters
         ----------
