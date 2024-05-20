@@ -1,8 +1,6 @@
 """
 Stores the main functions for converting clinical data (initally from RedCap-ARCH) to
 FHIRflat.
-
-TODO: Eventually, this should link to a google sheet file that contains the mappings
 """
 
 import pandas as pd
@@ -17,9 +15,10 @@ from fhirflat.util import get_local_resource
 
 """
 TODO
-* sort out reference formatting + how to choose ID's e.g. location within encounter etc
+* sort out how to choose ID's e.g. location within encounter etc
 * cope with 'if' statements - e.g. for date overwriting.
-* deal with duplicates/how to add multiple values to a single field - list options.
+* deal with how to check if lists are appropriate when adding multiple values to a
+    single field - list options.
 * Consider using pandarallel (https://pypi.org/project/pandarallel/) to parallelize
     the apply function, particularly for one to many mappings.
 """
@@ -35,23 +34,25 @@ def find_field_value(row, response, mapp, raw_data=None):
         return response
     elif "+" in mapp:
         mapp = mapp.split("+")
-        results = [find_field_value(row, response, m) for m in mapp]
-        results = [x for x in results if x == x]
-        return " ".join(results)
+        results = [find_field_value(row, response, m, raw_data) for m in mapp]
+        results = [str(x) for x in results if x == x]
+        return " ".join(results) if "/" not in results[0] else "".join(results)
     elif "if not" in mapp:
         mapp = mapp.replace(" ", "").split("ifnot")
-        results = [find_field_value(row, response, m) for m in mapp]
+        results = [find_field_value(row, response, m, raw_data) for m in mapp]
         x, y = results
         if isinstance(y, float):
             return x if isnan(y) else None
         else:
             return x if not y else None
-    else:
+    elif "<" in mapp:
         col = mapp.lstrip("<").rstrip(">")
         try:
             return row[col]
         except KeyError:
             return raw_data.loc[row["index"], col]
+    else:
+        return mapp
 
 
 def create_dict_from_row(row, map_df):
@@ -276,4 +277,6 @@ def convert_data_to_flat(
         else:
             raise ValueError(f"Unknown mapping type {t}")
 
-        resource.ingest_to_flat(df, folder_name + "/" + resource.__name__.lower())
+        resource.ingest_to_flat(
+            df, os.path.join(folder_name, resource.__name__.lower())
+        )

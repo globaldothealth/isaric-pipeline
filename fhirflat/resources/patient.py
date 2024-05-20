@@ -74,7 +74,9 @@ class Patient(Patient, FHIRFlatBase):
         if json_data:
             data = orjson.loads(data)
 
-        # # Strip time from the birthDate
+        data["id"] = str(data["id"])
+
+        # Strip time from the birthDate
         if "birthDate" in data:
             data["birthDate"] = data["birthDate"].split("T", 1)[0]
 

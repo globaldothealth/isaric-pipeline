@@ -13,7 +13,7 @@ from decimal import Decimal
 
 ENCOUNTER_DICT_OUT = {
     "id": 11,
-    "subject": 2,
+    "subject": "Patient/2",
     "actualPeriod.start": "2021-04-01 18:00",
     "actualPeriod.end": "2021-04-10",
     "extension.timingPhase.system": "https://snomed.info/sct",
@@ -115,7 +115,7 @@ ENCOUNTER_SINGLE_ROW_FLAT = {
             ],
         },
     ],
-    "subject": "2",
+    "subject": "Patient/2",
     "actualPeriod.start": "2021-04-01 18:00:00",
     "actualPeriod.end": "2021-04-10",
     "admission.dischargeDisposition.code": "https://snomed.info/sct|371827001",
@@ -287,8 +287,8 @@ ENCOUNTER_SINGLE_ROW_MULTI = {
         None,
         "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
     ],
-    "subject": ["p1", "p2", "p3", "p4"],
-    "id": ["e10", "e11", "e12", "e13"],
+    "subject": ["Patient/1", "Patient/2", "Patient/3", "Patient/4"],
+    "id": ["10", "11", "12", "13"],
     "actualPeriod.start": [
         "2020-05-01",
         "2021-04-01 18:00:00",
@@ -390,8 +390,14 @@ OBS_FLAT = {
         "Heart rate",
         "Heart rate",
     ],
-    "subject": ["p1", "p2", "p3", "p1", "p2"],
-    "encounter": ["e10", "e11", "e12", "e10", "e11"],
+    "subject": ["Patient/1", "Patient/2", "Patient/3", "Patient/1", "Patient/2"],
+    "encounter": [
+        "Encounter/10",
+        "Encounter/11",
+        "Encounter/12",
+        "Encounter/10",
+        "Encounter/11",
+    ],
     "valueQuantity.value": [Decimal("36.2"), 37.0, 35.5, 120.0, 100.0],
     "valueQuantity.unit": [
         "DegreesCelsius",

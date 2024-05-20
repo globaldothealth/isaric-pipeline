@@ -14,6 +14,9 @@ JsonString: TypeAlias = str
 
 
 class FHIRFlatBase(DomainResource):
+    """
+    Base class for FHIR resources to add FHIRflat functionality.
+    """
 
     flat_exclusions: ClassVar[set[str]] = (
         "meta",
@@ -78,10 +81,21 @@ class FHIRFlatBase(DomainResource):
             return list(df["fhir"])
 
     @classmethod
-    def ingest_backbone_elements(cls, mapped_data: pd.Series):
+    def ingest_backbone_elements(cls, mapped_data: pd.Series) -> pd.Series:
         """
         Takes ordered lists of data and forms the correct FHIR format which won't
-        be flattened after ingestion.
+        be flattened after ingestion (*_dense columns).
+
+        Parameters
+        ----------
+        mapped_data: pd.Series
+            Pandas series of FHIRflat-like dictionaries ready to be converted to FHIR
+            format.
+
+        Returns
+        -------
+        pd.Series
+
         """
 
         def fhir_format(row):
@@ -127,6 +141,7 @@ class FHIRFlatBase(DomainResource):
             lambda x: cls.cleanup(x, json_data=False)
         )
 
+        # flattens resources back out
         flat_df = data["fhir"].apply(lambda x: x.to_flat())
 
         # Stops parquet conversion from stripping the time from mixed date/datetime
