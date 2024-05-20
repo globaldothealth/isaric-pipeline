@@ -1,10 +1,7 @@
 from fhir.resources.patient import Patient
 from .base import FHIRFlatBase
-from .extension_types import (
-    ageType,
-    birthSexType,
-)
-from .extensions import Age, birthSex
+from .extension_types import ageType, birthSexType, raceType
+from .extensions import Age, birthSex, Race
 import orjson
 
 from ..flat2fhir import expand_concepts
@@ -16,18 +13,20 @@ JsonString: TypeAlias = str
 
 
 class Patient(Patient, FHIRFlatBase):
-    extension: list[Union[ageType, birthSexType, fhirtypes.ExtensionType]] = Field(
-        None,
-        alias="extension",
-        title="Additional content defined by implementations",
-        description=(
-            """
+    extension: list[Union[ageType, birthSexType, raceType, fhirtypes.ExtensionType]] = (
+        Field(
+            None,
+            alias="extension",
+            title="Additional content defined by implementations",
+            description=(
+                """
             Contains the G.H 'age' and 'birthSex' extensions,
             and allows extensions from other implementations to be included."""
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        union_mode="smart",
+            ),
+            # if property is element of this resource.
+            element_property=True,
+            union_mode="smart",
+        )
     )
 
     # attributes to exclude from the flat representation
@@ -47,9 +46,10 @@ class Patient(Patient, FHIRFlatBase):
     def validate_extension_contents(cls, extensions):
         age_count = sum(isinstance(item, Age) for item in extensions)
         birthsex_count = sum(isinstance(item, birthSex) for item in extensions)
+        race_count = sum(isinstance(item, Race) for item in extensions)
 
-        if age_count > 1 or birthsex_count > 1:
-            raise ValueError("Age and birthSex can only appear once.")
+        if age_count > 1 or birthsex_count > 1 or race_count > 1:
+            raise ValueError("Age, birthSex and Race can only appear once.")
 
         return extensions
 

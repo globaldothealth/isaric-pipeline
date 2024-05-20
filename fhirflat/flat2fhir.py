@@ -17,7 +17,7 @@ def create_codeable_concept(
     """Re-creates a codeableConcept structure from the FHIRflat representation."""
 
     # for reading in from ingestion pipeline
-    if (name + ".code" and name + ".system") in old_dict:
+    if name + ".code" in old_dict and name + ".system" in old_dict:
         code = old_dict[name + ".code"]
         if isinstance(code, list) and len(code) > 1:
             new_dict = {"coding": []}

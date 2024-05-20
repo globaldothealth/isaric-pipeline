@@ -417,6 +417,42 @@ class birthSex(_DataType):
         ]
 
 
+class Race(_DataType):
+    """
+    An ISARIC extension collecting data on the race of a patient.
+    """
+
+    resource_type = Field("Race", const=True)
+
+    url = Field("race", const=True, alias="url")
+
+    valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
+        None,
+        alias="valueCodeableConcept",
+        title="Value of extension",
+        description=(
+            "Value of extension - must be one of a constrained set of the data "
+            "types (see [Extensibility](extensibility.html) for a list)."
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        element_required=True,
+    )
+
+    @classmethod
+    def elements_sequence(cls):
+        """returning all elements names from
+        ``Extension`` according specification,
+        with preserving original sequence order.
+        """
+        return [
+            "id",
+            "extension",
+            "url",
+            "valueCodeableConcept",
+        ]
+
+
 # ------------------- extension types ------------------------------
 
 

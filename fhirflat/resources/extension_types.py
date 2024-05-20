@@ -51,5 +51,9 @@ class birthSexType(AbstractType):
     __resource_type__ = "birthSex"
 
 
+class raceType(AbstractType):
+    __resource_type__ = "Race"
+
+
 class dateTimeExtensionType(AbstractType):
     __resource_type__ = "dateTimeExtension"

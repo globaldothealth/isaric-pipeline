@@ -65,6 +65,7 @@ class Validators:
             "Duration": (None, ".extensions"),
             "Age": (None, ".extensions"),
             "birthSex": (None, ".extensions"),
+            "Race": (None, ".extensions"),
             "dateTimeExtension": (None, ".extensions"),
         }
 
@@ -228,6 +229,10 @@ def age_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
 
 def birthsex_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
     return Validators().fhir_model_validator("birthSex", v)
+
+
+def race_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
+    return Validators().fhir_model_validator("Race", v)
 
 
 def datetimeextension_validator(v: Union[StrBytes, dict, Path, FHIRAbstractModel]):
