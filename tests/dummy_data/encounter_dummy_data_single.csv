@@ -1,2 +1,2 @@
-﻿usubjid,visitid,dates_enrolment,dates_adm,dates_admdate,dates_admtime,non_encounter_field,outco_denguediag,outco_denguediag_main,outco_denguediag_class,outco_not_dengue,outco_secondiag_oth,outco_date,outco_outcome
+﻿subjid,visitid,dates_enrolment,dates_adm,dates_admdate,dates_admtime,non_encounter_field,outco_denguediag,outco_denguediag_main,outco_denguediag_class,outco_not_dengue,outco_secondiag_oth,outco_date,outco_outcome
 2,11,2021-04-02,1,2021-04-01,18:00,fish,1,,2,,,2021-04-10,1

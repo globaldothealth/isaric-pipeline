@@ -1,5 +1,9 @@
 # Converts FHIRflat files into FHIR resources
-from .util import group_keys, get_fhirtype, get_local_extension_type
+from .util import (
+    group_keys,
+    get_fhirtype,
+    get_local_extension_type,
+)
 from fhir.resources.quantity import Quantity
 from fhir.resources.codeableconcept import CodeableConcept
 from fhir.resources.period import Period
@@ -9,6 +13,7 @@ from fhir.resources.domainresource import DomainResource as _DomainResource
 from fhir.resources.backbonetype import BackboneType as _BackboneType
 
 from pydantic.v1.error_wrappers import ValidationError
+from pydantic.v1 import BaseModel
 
 
 def create_codeable_concept(
@@ -18,33 +23,23 @@ def create_codeable_concept(
 
     # for reading in from ingestion pipeline
     if name + ".code" in old_dict and name + ".system" in old_dict:
-        code = old_dict[name + ".code"]
-        if isinstance(code, list) and len(code) > 1:
-            new_dict = {"coding": []}
-            for system, code, name in zip(
-                old_dict[name + ".system"], code, old_dict[name + ".text"]
-            ):
-                formatted_code = code if isinstance(code, str) else str(int(code))
-                display = name
-
-                subdict = {"system": system, "code": code, "display": display}
-
-                new_dict["coding"].append(subdict)
+        raw_codes = old_dict.get(name + ".code")
+        if not isinstance(raw_codes, list):
+            formatted_code = (
+                raw_codes if isinstance(raw_codes, str) else str(int(raw_codes))
+            )
+            codes = [old_dict[name + ".system"] + "|" + formatted_code]
         else:
-            formatted_code = code if isinstance(code, str) else str(int(code))
-            new_dict = {
-                "coding": [
-                    {
-                        "system": old_dict[name + ".system"],
-                        "code": formatted_code,
-                        "display": old_dict[name + ".text"],
-                    }
-                ]
-            }
-        return new_dict
-
-    # From FHIRflat file
-    codes = old_dict.get(name + ".code")
+            formatted_code = [
+                c if isinstance(c, str) else str(int(c)) for c in raw_codes
+            ]
+            codes = [
+                [s + "|" + c]
+                for s, c in zip(old_dict[name + ".system"], formatted_code)
+            ]
+    else:
+        # From FHIRflat file
+        codes = old_dict.get(name + ".code")
 
     if codes is None:
         return {
@@ -164,10 +159,51 @@ def set_datatypes(k, v_dict, klass) -> dict:
             }
 
         data_type = prop[value_type[0]]["type"]
-        data_class = get_fhirtype(data_type)
-        return {"url": k, f"{value_type[0]}": set_datatypes(k, v_dict, data_class)}
+        try:
+            data_class = get_fhirtype(data_type)
+            return {"url": k, f"{value_type[0]}": set_datatypes(k, v_dict, data_class)}
+        except AttributeError:
+            # datatype should be a primitive
+            return {"url": k, f"{value_type[0]}": v_dict[k]}
 
     return {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
+
+
+def find_data_class(data_class: list[BaseModel] | BaseModel, k: str) -> BaseModel:
+    """
+    Finds the type class for item k within the data class.
+
+    Parameters
+    ----------
+    data_class: list[BaseModel] or BaseModel
+        The data class to search within. If a list, the function will search for the
+        a class with a matching title to k.
+    k: str
+        The property to search for within the data class
+    """
+
+    if isinstance(data_class, list):
+        title_matches = [k.lower() == c.schema()["title"].lower() for c in data_class]
+        result = [x for x, y in zip(data_class, title_matches) if y]
+        if len(result) == 1:
+            return get_fhirtype(k)
+        else:
+            raise ValueError(f"Couldn't find a matching class for {k} in {data_class}")
+
+    else:
+        k_schema = data_class.schema()["properties"].get(k)
+
+        base_class = (
+            k_schema.get("items").get("type")
+            if k_schema.get("items") is not None
+            else k_schema.get("type")
+        )
+
+        if base_class is None:
+            assert k_schema.get("type") == "array"
+
+            base_class = [opt.get("type") for opt in k_schema["items"]["anyOf"]]
+        return get_fhirtype(base_class)
 
 
 def expand_concepts(data: dict, data_class: type[_DomainResource]) -> dict:
@@ -180,36 +216,7 @@ def expand_concepts(data: dict, data_class: type[_DomainResource]) -> dict:
 
     for k in groups.keys():
 
-        if isinstance(data_class, list):
-            title_matches = [
-                k.lower() == c.schema()["title"].lower() for c in data_class
-            ]
-            result = [x for x, y in zip(data_class, title_matches) if y]
-            if len(result) == 1:
-                group_classes[k] = k
-                continue
-            else:
-                raise ValueError(
-                    f"Couldn't find a matching class for {k} in {data_class}"
-                )
-
-        else:
-            k_schema = data_class.schema()["properties"].get(k)
-
-            group_classes[k] = (
-                k_schema.get("items").get("type")
-                if k_schema.get("items") is not None
-                else k_schema.get("type")
-            )
-
-            if group_classes[k] is None:
-                assert k_schema.get("type") == "array"
-
-                group_classes[k] = [
-                    opt.get("type") for opt in k_schema["items"]["anyOf"]
-                ]
-
-    group_classes = {k: get_fhirtype(v) for k, v in group_classes.items()}
+        group_classes[k] = find_data_class(data_class, k)
 
     expanded = {}
     keys_to_replace = []
@@ -226,6 +233,22 @@ def expand_concepts(data: dict, data_class: type[_DomainResource]) -> dict:
 
         if all(isinstance(v, dict) for v in v_dict.values()):
             # coming back out of nested recursion
+            expanded[k] = {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
+
+        elif any(isinstance(v, dict) for v in v_dict.values()) and isinstance(
+            group_classes[k], list
+        ):
+            # extensions, where some classes are just values and others have codes etc
+            non_dict_items = {
+                k: v for k, v in v_dict.items() if not isinstance(v, dict)
+            }
+            stripped_dict = {
+                s.split(".", 1)[1]: non_dict_items[s] for s in non_dict_items.keys()
+            }
+            for k1, v1 in stripped_dict.items():
+                klass = find_data_class(group_classes[k], k1)
+                v_dict[k + "." + k1] = set_datatypes(k1, {k1: v1}, klass)
+
             expanded[k] = {s.split(".", 1)[1]: v_dict[s] for s in v_dict}
 
         else:

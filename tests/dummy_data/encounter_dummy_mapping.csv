@@ -1,5 +1,5 @@
 ﻿raw_variable,raw_response,id,subject,extension.timingPhase.system,extension.timingPhase.code,extension.timingPhase.text,class.system,class.code,class.text,actualPeriod.start,actualPeriod.end,diagnosis.condition.concept.system,diagnosis.condition.concept.code,diagnosis.condition.concept.text,diagnosis.use.system,diagnosis.use.code,diagnosis.use.text,admission.dischargeDisposition.system,admission.dischargeDisposition.code,admission.dischargeDisposition.text
-usubjid,,,Patient/+<FIELD>,,,,,,,,,,,,,,,,,
+subjid,,,Patient/+<FIELD>,,,,,,,,,,,,,,,,,
 visitid,,<FIELD>,,,,,,,,,,,,,,,,,,
 dates_enrolment,,,,,,,,,,<FIELD> if not <dates_admdate>,<FIELD> if not <dates_admdate>,,,,,,,,,
 dates_adm,"1, Yes",,,https://snomed.info/sct,278307001,On admission (qualifier value),https://snomed.info/sct,32485007,Hospital admission (procedure),,,,,,,,,,,

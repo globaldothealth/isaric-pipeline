@@ -50,7 +50,10 @@ def find_field_value(row, response, mapp, raw_data=None):
         try:
             return row[col]
         except KeyError:
-            return raw_data.loc[row["index"], col]
+            try:
+                return raw_data.loc[row["index"], col]
+            except KeyError:
+                raise KeyError(f"Column {col} not found in data")
     else:
         return mapp
 
@@ -149,7 +152,11 @@ def create_dict_long(
 
 
 def create_dictionary(
-    data: pd.DataFrame, map_file: pd.DataFrame, resource: str, one_to_one=False
+    data: pd.DataFrame,
+    map_file: pd.DataFrame,
+    resource: str,
+    one_to_one=False,
+    subject_id="subjid",
 ) -> pd.DataFrame:
     """
     Given a data file and a single mapping file for one FHIR resource type,
@@ -167,6 +174,8 @@ def create_dictionary(
         The name of the resource being mapped.
     one_to_one: bool
         Whether the resource should be mapped as one-to-one or one-to-many.
+    subject_id: str
+        The name of the column containing the subject ID in the data file.
     """
 
     data = pd.read_csv(data, header=0)
@@ -179,6 +188,32 @@ def create_dictionary(
     if filtered_data.empty:
         warnings.warn(f"No data found for the {resource} resource.", UserWarning)
         return None
+
+    if one_to_one:
+
+        def condense(x):
+            """
+            In case where data is actually multi-row per subject, condenses the relevant
+            data into a single row for 1:1 mapping.
+            """
+
+            # Check if the column contains nan values
+            if x.isnull().any():
+                # If the column contains a single non-nan value, return it
+                non_nan_values = x.dropna()
+                if non_nan_values.nunique() == 1:
+                    return non_nan_values
+                elif non_nan_values.empty:
+                    return np.nan
+                else:
+                    raise ValueError("Multiple values found in one-to-one mapping")
+            else:
+                if len(x) == 1:
+                    return x
+                else:
+                    raise ValueError("Multiple values found in one-to-one mapping")
+
+        filtered_data = filtered_data.groupby(subject_id, as_index=False).agg(condense)
 
     if not one_to_one:
         filtered_data = filtered_data.reset_index()
@@ -215,6 +250,7 @@ def convert_data_to_flat(
     folder_name: str,
     mapping_files_types: tuple[dict, dict] | None = None,
     sheet_id: str | None = None,
+    subject_id="subjid",
 ):
     """
     Takes raw clinical data (currently assumed to be a one-row-per-patient format like
@@ -236,6 +272,8 @@ def convert_data_to_flat(
         the mapping types - one column listing the resource name, and another describing
         whether the mapping is one-to-one or one-to-many. The subsequent sheets must
         be named by resource, and contain the mapping for that resource.
+    subject_id: str
+        The name of the column containing the subject ID in the data file.
     """
 
     if not mapping_files_types and not sheet_id:
@@ -268,11 +306,23 @@ def convert_data_to_flat(
 
         t = types[resource.__name__]
         if t == "one-to-one":
-            df = create_dictionary(data, map_file, resource.__name__, one_to_one=True)
+            df = create_dictionary(
+                data,
+                map_file,
+                resource.__name__,
+                one_to_one=True,
+                subject_id=subject_id,
+            )
             if df is None:
                 continue
         elif t == "one-to-many":
-            df = create_dictionary(data, map_file, resource.__name__, one_to_one=False)
+            df = create_dictionary(
+                data,
+                map_file,
+                resource.__name__,
+                one_to_one=False,
+                subject_id=subject_id,
+            )
             if df is None:
                 continue
             else:

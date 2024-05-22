@@ -100,7 +100,7 @@ class FHIRFlatBase(DomainResource):
 
         """
 
-        def fhir_format(row):
+        def fhir_format(row: pd.Series) -> pd.Series:
             for b_e, b_c in cls.backbone_elements.items():
                 keys_present = [key for key in row if key.startswith(b_e)]
                 if keys_present:
@@ -123,8 +123,8 @@ class FHIRFlatBase(DomainResource):
                         row[b_e] = backbone_list
             return row
 
-        mapped_data.apply(fhir_format)
-        return mapped_data
+        condensed_mapped_data = mapped_data.apply(fhir_format)
+        return condensed_mapped_data
 
     @classmethod
     def ingest_to_flat(cls, data: pd.DataFrame, filename: str):
@@ -152,6 +152,16 @@ class FHIRFlatBase(DomainResource):
             x for x in flat_df.columns if "date" in x.lower() or "period" in x.lower()
         ]:
             flat_df[date_cols] = flat_df[date_cols].astype(str)
+            flat_df[date_cols] = flat_df[date_cols].replace("nan", None)
+
+        for coding_column in [
+            x
+            for x in flat_df.columns
+            if x.lower().endswith(".code") or x.lower().endswith(".text")
+        ]:
+            flat_df[coding_column] = flat_df[coding_column].apply(
+                lambda x: [x] if isinstance(x, str) else x
+            )
 
         flat_df.to_parquet(f"{filename}.parquet")
 
