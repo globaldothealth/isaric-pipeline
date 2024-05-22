@@ -1,6 +1,6 @@
 # from pydantic import BaseModel
 from __future__ import annotations
-from fhir.resources.domainresource import DomainResource
+from fhir.resources.domainresource import DomainResource as _DomainResource
 
 import pandas as pd
 import orjson
@@ -13,7 +13,7 @@ from typing import TypeAlias, ClassVar
 JsonString: TypeAlias = str
 
 
-class FHIRFlatBase(DomainResource):
+class FHIRFlatBase(_DomainResource):
     """
     Base class for FHIR resources to add FHIRflat functionality.
     """
