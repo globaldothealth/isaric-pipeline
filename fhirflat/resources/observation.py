@@ -9,7 +9,7 @@ from pydantic.v1 import Field, validator
 import orjson
 from fhir.resources import fhirtypes
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar, Union
 
 JsonString: TypeAlias = str

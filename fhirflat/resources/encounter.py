@@ -10,7 +10,7 @@ from fhir.resources.encounter import (
 from .base import FHIRFlatBase
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 
 from .extensions import relativePeriod, timingPhase
 from .extension_types import relativePeriodType, timingPhaseType

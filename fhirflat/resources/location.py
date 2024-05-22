@@ -3,7 +3,7 @@ from fhir.resources.location import Location as _Location
 from .base import FHIRFlatBase
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str

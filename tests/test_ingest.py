@@ -9,6 +9,7 @@ from pandas.testing import assert_frame_equal
 import os
 import shutil
 from decimal import Decimal
+import numpy as np
 
 
 ENCOUNTER_DICT_OUT = {
@@ -275,19 +276,19 @@ ENCOUNTER_SINGLE_ROW_MULTI = {
         None,
         None,
         None,
-        "Malaria",
+        ["Malaria"],
     ],
     "diagnosis.use.code": [
         None,
         None,
         None,
-        "https://snomed.info/sct|89100005",
+        ["https://snomed.info/sct|89100005"],
     ],
     "diagnosis.use.text": [
         None,
         None,
         None,
-        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
+        ["Final diagnosis (discharge) (contextual qualifier) (qualifier value)"],
     ],
     "subject": ["Patient/1", "Patient/2", "Patient/3", "Patient/4"],
     "id": ["10", "11", "12", "13"],
@@ -418,7 +419,7 @@ OBS_FLAT = {
     ],
     "valueCodeableConcept.code": [None, None, None, None, None],
     "valueCodeableConcept.text": [None, None, None, None, None],
-    "valueInteger": [None, None, None, None, None],
+    "valueInteger": [np.nan, np.nan, np.nan, np.nan, np.nan],
 }
 
 

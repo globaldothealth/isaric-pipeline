@@ -5,8 +5,8 @@ from fhir.resources.domainresource import DomainResource as _DomainResource
 import pandas as pd
 import orjson
 
-from ..fhir2flat import fhir2flat
-from ..flat2fhir import expand_concepts
+from fhirflat.fhir2flat import fhir2flat
+from fhirflat.flat2fhir import expand_concepts
 
 from typing import TypeAlias, ClassVar
 
@@ -136,7 +136,7 @@ class FHIRFlatBase(_DomainResource):
             Pandas dataframe containing the data
         """
 
-        data["flat_dict"] = cls.ingest_backbone_elements(data["flat_dict"])
+        data.loc[:, "flat_dict"] = cls.ingest_backbone_elements(data["flat_dict"])
 
         # Creates a columns of FHIR resource instances
         data["fhir"] = data["flat_dict"].apply(

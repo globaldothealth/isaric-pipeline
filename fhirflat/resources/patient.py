@@ -4,7 +4,7 @@ from .extension_types import ageType, birthSexType, raceType
 from .extensions import Age, birthSex, Race
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar, Union
 from fhir.resources import fhirtypes
 from pydantic.v1 import Field, validator

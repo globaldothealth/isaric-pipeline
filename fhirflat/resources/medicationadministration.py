@@ -5,7 +5,7 @@ from fhir.resources.medicationadministration import (
 from .base import FHIRFlatBase
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
