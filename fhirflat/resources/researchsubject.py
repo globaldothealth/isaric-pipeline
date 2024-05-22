@@ -12,10 +12,10 @@ JsonString: TypeAlias = str
 class ResearchSubject(_ResearchSubject, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]

@@ -18,14 +18,14 @@ class FHIRFlatBase(DomainResource):
     Base class for FHIR resources to add FHIRflat functionality.
     """
 
-    flat_exclusions: ClassVar[set[str]] = (
+    flat_exclusions: ClassVar[set[str]] = {
         "meta",
         "implicitRules",
         "language",
         "text",
         "contained",
         "modifierExtension",
-    )
+    }
 
     flat_defaults: ClassVar[list[str]] = []
 

@@ -42,7 +42,7 @@ class Encounter(_Encounter, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "identifier",
         "participant",  # participants other than the patient
         "appointment",  # appointment that scheduled the encounter
@@ -50,7 +50,7 @@ class Encounter(_Encounter, FHIRFlatBase):
         "dietPreference",
         "specialArrangement",  # if translator, streatcher, wheelchair etc. needed
         "specialCourtesy",  # contains ID information, VIP, board member, etc.
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]

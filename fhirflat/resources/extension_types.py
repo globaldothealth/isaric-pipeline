@@ -4,7 +4,7 @@ from fhir.resources.fhirtypes import AbstractType as _AbstractType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pydantic.v1.types import CallableGenerator
+    from pydantic.v1.typing import CallableGenerator
 
 
 class AbstractType(_AbstractType):

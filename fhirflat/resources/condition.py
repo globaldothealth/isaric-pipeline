@@ -38,14 +38,14 @@ class Condition(_Condition, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "verificationStatus",
         "evidence",
         "note",
         "participant",
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["clinicalStatus"]
@@ -88,7 +88,7 @@ class Condition(_Condition, FHIRFlatBase):
         like codeableConcepts back into structured data.
         """
         if json_data:
-            data = orjson.loads(data)
+            data: dict = orjson.loads(data)
 
         data["encounter"] = {"reference": data["encounter"]}
         data["subject"] = {"reference": data["subject"]}

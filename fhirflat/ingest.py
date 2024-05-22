@@ -50,15 +50,18 @@ def find_field_value(row, response, mapp, raw_data=None):
         try:
             return row[col]
         except KeyError:
-            try:
-                return raw_data.loc[row["index"], col]
-            except KeyError:
-                raise KeyError(f"Column {col} not found in data")
+            if raw_data is not None:
+                try:
+                    return raw_data.loc[row["index"], col]
+                except KeyError:
+                    raise KeyError(f"Column {col} not found in data")
+            else:
+                raise KeyError(f"Column {col} not found in the filtered data")
     else:
         return mapp
 
 
-def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> pd.Series:
+def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> dict:
     """
     Takes a wide-format dataframe and iterates through the columns of the row,
     applying the mapping to each column and produces a fhirflat-like dictionary to
@@ -117,7 +120,7 @@ def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> pd.Series:
 
 def create_dict_long(
     row: pd.Series, full_df: pd.DataFrame, map_df: pd.DataFrame
-) -> pd.Series:
+) -> dict | None:
     """
     Takes a long-format dataframe and a mapping file, and produces a fhirflat-like
     dictionary for each row in the dataframe.
@@ -152,12 +155,12 @@ def create_dict_long(
 
 
 def create_dictionary(
-    data: pd.DataFrame,
-    map_file: pd.DataFrame,
+    data: str,
+    map_file: str,
     resource: str,
     one_to_one=False,
     subject_id="subjid",
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
     Given a data file and a single mapping file for one FHIR resource type,
     returns a single column dataframe with the mapped data in a FHIRflat-like
@@ -165,11 +168,11 @@ def create_dictionary(
 
     Parameters
     ----------
-    data: pd.DataFrame
-        The data file containing the clinical data.
+    data: str
+        The path to the data file containing the clinical data.
     map_file: pd.DataFrame
-        The mapping file containing the mapping of the clinical data to the FHIR
-        resource.
+        The path to the mapping file containing the mapping of the clinical data to the
+        FHIR resource.
     resource: str
         The name of the resource being mapped.
     one_to_one: bool
@@ -178,8 +181,8 @@ def create_dictionary(
         The name of the column containing the subject ID in the data file.
     """
 
-    data = pd.read_csv(data, header=0)
-    map_df = pd.read_csv(map_file, header=0)
+    data: pd.DataFrame = pd.read_csv(data, header=0)
+    map_df: pd.DataFrame = pd.read_csv(map_file, header=0)
 
     # setup the data -----------------------------------------------------------
     relevant_cols = map_df["raw_variable"].dropna().unique()

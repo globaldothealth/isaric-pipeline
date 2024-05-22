@@ -14,13 +14,13 @@ JsonString: TypeAlias = str
 class MedicationAdministration(_MedicationAdministration, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "basedOn",
         "performer",
         "note",
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]

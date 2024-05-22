@@ -30,7 +30,7 @@ class Patient(Patient, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "identifier",
         "active",
         "name",
@@ -40,7 +40,7 @@ class Patient(Patient, FHIRFlatBase):
         "contact",
         "communication",
         "link",
-    )
+    }
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):

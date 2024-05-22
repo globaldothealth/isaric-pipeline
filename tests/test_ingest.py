@@ -51,6 +51,7 @@ def test_create_dict_one_to_one_single_row():
         one_to_one=True,
     )
 
+    assert df is not None
     dict_out = df["flat_dict"][0]
 
     assert dict_out == ENCOUNTER_DICT_OUT
@@ -133,6 +134,7 @@ def test_load_data_one_to_one_single_row():
         one_to_one=True,
     )
 
+    assert df is not None
     Encounter.ingest_to_flat(df, "encounter_ingestion_single")
 
     assert_frame_equal(
@@ -336,6 +338,7 @@ def test_load_data_one_to_one_multi_row():
         one_to_one=True,
     )
 
+    assert df is not None
     Encounter.ingest_to_flat(df, "encounter_ingestion_multi")
 
     assert_frame_equal(
@@ -427,6 +430,7 @@ def test_load_data_one_to_many_multi_row():
         one_to_one=False,
     )
 
+    assert df is not None
     Observation.ingest_to_flat(df.dropna(), "observation_ingestion")
 
     full_df = pd.read_parquet("observation_ingestion.parquet")

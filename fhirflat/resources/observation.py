@@ -67,7 +67,7 @@ class Observation(_Observation, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "instantiatesCanonical",
@@ -77,7 +77,7 @@ class Observation(_Observation, FHIRFlatBase):
         "referenceRange",
         "issued",
         "note",
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]

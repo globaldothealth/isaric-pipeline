@@ -23,9 +23,9 @@ class timingPhase(_DataType):
     with an appropriate SNOMED (or similar) code.
     """
 
-    resource_type = Field("timingPhase", const=True)
+    resource_type: str = Field(default="timingPhase", const=True)
 
-    url = Field("timingPhase", const=True, alias="url")
+    url: str = Field("timingPhase", const=True, alias="url")
 
     valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
         None,
@@ -61,9 +61,9 @@ class relativeDay(_DataType):
     both the relative start and end dates instead.
     """
 
-    resource_type = Field("relativeDay", const=True)
+    resource_type: str = Field(default="relativeDay", const=True)
 
-    url = Field("relativeDay", const=True, alias="url")
+    url: str = Field("relativeDay", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -97,9 +97,9 @@ class relativeStart(_DataType):
     An ISARIC extension for use inside the complex `relativePeriod` extension.
     """
 
-    resource_type = Field("relativeStart", const=True)
+    resource_type: str = Field(default="relativeStart", const=True)
 
-    url = Field("relativeStart", const=True, alias="url")
+    url: str = Field("relativeStart", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -133,9 +133,9 @@ class relativeEnd(_DataType):
     An ISARIC extension for use inside the complex `relativePeriod` extension.
     """
 
-    resource_type = Field("relativeEnd", const=True)
+    resource_type: str = Field(default="relativeEnd", const=True)
 
-    url = Field("relativeEnd", const=True, alias="url")
+    url: str = Field("relativeEnd", const=True, alias="url")
 
     valueInteger: fhirtypes.Integer = Field(
         None,
@@ -177,9 +177,9 @@ class relativePeriod(_DataType):
     relativeEnd is 5.
     """
 
-    resource_type = Field("relativePeriod", const=True)
+    resource_type: str = Field(default="relativePeriod", const=True)
 
-    url = Field("relativePeriod", const=True, alias="url")
+    url: str = Field("relativePeriod", const=True, alias="url")
 
     extension: list[Union[et.relativeStartType, et.relativeEndType]] = Field(
         None,
@@ -224,9 +224,9 @@ class approximateDate(_DataType):
     approximateDate extension with a valueString of "3 months".
     """
 
-    resource_type = Field("approximateDate", const=True)
+    resource_type: str = Field(default="approximateDate", const=True)
 
-    url = Field("approximateDate", const=True, alias="url")
+    url: str = Field("approximateDate", const=True, alias="url")
 
     valueDate: fhirtypes.Date = Field(
         None,
@@ -314,9 +314,9 @@ class Duration(_DataType):
     duration is not an option in the base FHIR specification.
     """
 
-    resource_type = Field("Duration", const=True)
+    resource_type: str = Field(default="Duration", const=True)
 
-    url = Field("duration", const=True, alias="url")
+    url: str = Field("duration", const=True, alias="url")
 
     valueQuantity: fhirtypes.QuantityType = Field(
         None,
@@ -350,9 +350,9 @@ class Age(_DataType):
     An ISARIC extension collecting data on the age of a patient.
     """
 
-    resource_type = Field("Age", const=True)
+    resource_type: str = Field(default="Age", const=True)
 
-    url = Field("age", const=True, alias="url")
+    url: str = Field("age", const=True, alias="url")
 
     valueQuantity: fhirtypes.QuantityType = Field(
         None,
@@ -386,9 +386,9 @@ class birthSex(_DataType):
     An ISARIC extension collecting data on the birth sex of a patient.
     """
 
-    resource_type = Field("birthSex", const=True)
+    resource_type: str = Field(default="birthSex", const=True)
 
-    url = Field("birthSex", const=True, alias="url")
+    url: str = Field("birthSex", const=True, alias="url")
 
     valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
         None,
@@ -422,9 +422,9 @@ class Race(_DataType):
     An ISARIC extension collecting data on the race of a patient.
     """
 
-    resource_type = Field("Race", const=True)
+    resource_type: str = Field(default="Race", const=True)
 
-    url = Field("race", const=True, alias="url")
+    url: str = Field("race", const=True, alias="url")
 
     valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
         None,
@@ -458,9 +458,9 @@ class presenceAbsence(_DataType):
     An ISARIC extension to indicate if a clinical finding is present, absent or unknown.
     """
 
-    resource_type = Field("presenceAbsence", const=True)
+    resource_type: str = Field(default="presenceAbsence", const=True)
 
-    url = Field("presenceAbsence", const=True, alias="url")
+    url: str = Field("presenceAbsence", const=True, alias="url")
 
     valueCodeableConcept: fhirtypes.CodeableConceptType = Field(
         None,
@@ -494,9 +494,9 @@ class prespecifiedQuery(_DataType):
     An ISARIC extension to indicate if a finding is the result of a prespecified query.
     """
 
-    resource_type = Field("prespecifiedQuery", const=True)
+    resource_type: str = Field(default="prespecifiedQuery", const=True)
 
-    url = Field("prespecifiedQuery", const=True, alias="url")
+    url: str = Field("prespecifiedQuery", const=True, alias="url")
 
     valueBoolean: bool = Field(
         None,
@@ -535,7 +535,7 @@ class dateTimeExtension(_FHIRPrimitiveExtension):
     to the current date.
     """
 
-    resource_type = Field("dateTimeExtension", const=True)
+    resource_type: str = Field(default="dateTimeExtension", const=True)
 
     extension: list[
         Union[et.approximateDateType, et.relativeDayType, fhirtypes.ExtensionType]

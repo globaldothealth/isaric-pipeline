@@ -12,13 +12,13 @@ JsonString: TypeAlias = str
 class Specimen(_Specimen, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "accessionIdentifier",
         "status",
         "note",
-    )
+    }
 
     @classmethod
     def cleanup(cls, data: JsonString | dict, json_data=True) -> Specimen:

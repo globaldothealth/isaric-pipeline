@@ -12,13 +12,13 @@ JsonString: TypeAlias = str
 class Location(_Location, FHIRFlatBase):
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "status",
         "contact",  # phone numbers, addresses,
         "hoursOfOperation",
-    )
+    }
 
     @classmethod
     def cleanup(cls, data: JsonString | dict, json_data=True) -> Location:
