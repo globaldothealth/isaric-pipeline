@@ -27,15 +27,17 @@ class MedicationAdministration(_MedicationAdministration, FHIRFlatBase):
 
     @classmethod
     def cleanup(
-        cls, data: JsonString | dict, json_data=True
+        cls, data_dict: JsonString | dict, json_data=True
     ) -> MedicationAdministration:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        if json_data:
-            data = orjson.loads(data)
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
         for field in (
             {

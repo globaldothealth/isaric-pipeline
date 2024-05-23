@@ -17,25 +17,25 @@ from pydantic.v1 import BaseModel
 
 
 def create_codeable_concept(
-    old_dict: dict[str, list[str] | str], name: str
+    old_dict: dict[str, list[str] | str | float], name: str
 ) -> dict[str, list[str]]:
     """Re-creates a codeableConcept structure from the FHIRflat representation."""
 
     # for reading in from ingestion pipeline
     if name + ".code" in old_dict and name + ".system" in old_dict:
-        raw_codes = old_dict.get(name + ".code")
+        raw_codes: str | float | list[str] = old_dict.get(name + ".code")
         if not isinstance(raw_codes, list):
             formatted_code = (
                 raw_codes if isinstance(raw_codes, str) else str(int(raw_codes))
             )
             codes = [old_dict[name + ".system"] + "|" + formatted_code]
         else:
-            formatted_code = [
+            formatted_codes = [
                 c if isinstance(c, str) else str(int(c)) for c in raw_codes
             ]
             codes = [
                 [s + "|" + c]
-                for s, c in zip(old_dict[name + ".system"], formatted_code)
+                for s, c in zip(old_dict[name + ".system"], formatted_codes)
             ]
     else:
         # From FHIRflat file
@@ -206,7 +206,7 @@ def find_data_class(data_class: list[BaseModel] | BaseModel, k: str) -> BaseMode
         return get_fhirtype(base_class)
 
 
-def expand_concepts(data: dict, data_class: type[_DomainResource]) -> dict:
+def expand_concepts(data: dict[str, str], data_class: type[_DomainResource]) -> dict:
     """
     Combines columns containing flattened FHIR concepts back into
     JSON-like structures.

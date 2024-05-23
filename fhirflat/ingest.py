@@ -68,7 +68,7 @@ def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> dict:
     initialize the resource object for each row.
     """
 
-    result = {}
+    result: dict = {}
     for column in row.index:
         if column in map_df.index.get_level_values(0):
             response = row[column]
@@ -155,7 +155,7 @@ def create_dict_long(
 
 
 def create_dictionary(
-    data: str,
+    data_file: str,
     map_file: str,
     resource: str,
     one_to_one=False,
@@ -181,7 +181,7 @@ def create_dictionary(
         The name of the column containing the subject ID in the data file.
     """
 
-    data: pd.DataFrame = pd.read_csv(data, header=0)
+    data: pd.DataFrame = pd.read_csv(data_file, header=0)
     map_df: pd.DataFrame = pd.read_csv(map_file, header=0)
 
     # setup the data -----------------------------------------------------------

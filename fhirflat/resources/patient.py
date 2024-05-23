@@ -1,4 +1,5 @@
-from fhir.resources.patient import Patient
+from __future__ import annotations
+from fhir.resources.patient import Patient as _Patient
 from .base import FHIRFlatBase
 from .extension_types import ageType, birthSexType, raceType
 from .extensions import Age, birthSex, Race
@@ -12,7 +13,7 @@ from pydantic.v1 import Field, validator
 JsonString: TypeAlias = str
 
 
-class Patient(Patient, FHIRFlatBase):
+class Patient(_Patient, FHIRFlatBase):
     extension: list[Union[ageType, birthSexType, raceType, fhirtypes.ExtensionType]] = (
         Field(
             None,
@@ -69,10 +70,16 @@ class Patient(Patient, FHIRFlatBase):
         return descrip
 
     @classmethod
-    def cleanup(cls, data: JsonString | dict, json_data=True) -> Patient:
-        # Load the data and apply resource-specific changes
-        if json_data:
-            data = orjson.loads(data)
+    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Patient:
+        """
+        Load data into a dictionary-like structure, then
+        apply resource-specific changes and unpack flattened data
+        like codeableConcepts back into structured data.
+        """
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
         data["id"] = str(data["id"])
 

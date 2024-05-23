@@ -81,14 +81,16 @@ class Condition(_Condition, FHIRFlatBase):
         return descrip
 
     @classmethod
-    def cleanup(cls, data: JsonString | dict, json_data=True) -> Condition:
+    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Condition:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        if json_data:
-            data: dict = orjson.loads(data)
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
         data["encounter"] = {"reference": data["encounter"]}
         data["subject"] = {"reference": data["subject"]}

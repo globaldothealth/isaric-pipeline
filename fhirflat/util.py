@@ -3,13 +3,14 @@ from itertools import groupby
 import fhir.resources
 import re
 import importlib
+from collections.abc import KeysView
 
 from .resources import extensions
 
 import fhirflat
 
 
-def group_keys(data_keys: list[str]) -> dict[str, list[str]]:
+def group_keys(data_keys: list[str] | KeysView) -> dict[str, list[str]]:
     """
     Finds columns with a '.' in the name denoting data that has been flattened and
      groups them together.
