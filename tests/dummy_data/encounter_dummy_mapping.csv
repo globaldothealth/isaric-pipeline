@@ -1,0 +1,25 @@
+﻿raw_variable,raw_response,id,subject,extension.timingPhase.system,extension.timingPhase.code,extension.timingPhase.text,class.system,class.code,class.text,actualPeriod.start,actualPeriod.end,diagnosis.condition.concept.system,diagnosis.condition.concept.code,diagnosis.condition.concept.text,diagnosis.use.system,diagnosis.use.code,diagnosis.use.text,admission.dischargeDisposition.system,admission.dischargeDisposition.code,admission.dischargeDisposition.text
+subjid,,,Patient/+<FIELD>,,,,,,,,,,,,,,,,,
+visitid,,<FIELD>,,,,,,,,,,,,,,,,,,
+dates_enrolment,,,,,,,,,,<FIELD> if not <dates_admdate>,<FIELD> if not <dates_admdate>,,,,,,,,,
+dates_adm,"1, Yes",,,https://snomed.info/sct,278307001,On admission (qualifier value),https://snomed.info/sct,32485007,Hospital admission (procedure),,,,,,,,,,,
+,"0, No",,,https://snomed.info/sct,281379000,Pre-admission (qualifier value),https://snomed.info/sct,371883000,Outpatient procedure (procedure),,,,,,,,,,,
+,"99, Unknown",,,,,,https://snomed.info/sct,32485007,Hospital admission (procedure),,,,,,,,,,,
+dates_admdate,,,,,,,,,,<FIELD>+<dates_admtime>,,,,,,,,,,
+dates_admtime,,,,,,,,,,<dates_admdate>+<FIELD>,,,,,,,,,,
+outco_denguediag,"1, Yes",,,,,,,,,,,https://snomed.info/sct,38362002,Dengue (disorder),https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
+,"0, No",,,,,,,,,,,,,,,,,,,
+,"99, Unknown",,,,,,,,,,,https://snomed.info/sct,261665006,Unknown (qualifier value),,,,,,
+outco_date,,,,,,,,,,,<FIELD>,,,,,,,,,
+outco_outcome,"1, Discharged alive",,,,,,,,,,,,,,,,,https://snomed.info/sct,371827001,Patient discharged alive (finding)
+,"2, Still hospitalised",,,,,,,,,,,,,,,,,https://snomed.info/sct,32485007,Hospital admission (procedure)
+,"3, Transfer to other facility",,,,,,,,,,,,,,,,,https://snomed.info/sct,306685000,Discharge to establishment (procedure)
+,"4, Death",,,,,,,,,,,,,,,,,https://snomed.info/sct,419099009,Dead (finding)
+,"5, Palliative care",,,,,,,,,,,,,,,,,https://snomed.info/sct,306237005,Referral to palliative care service (procedure)
+,"6, Discharged against medical advice",,,,,,,,,,,,,,,,,https://snomed.info/sct,225928004,Patient self-discharge against medical advice (procedure)
+,"7, Alive, not admitted",,,,,,,,,,,,,,,,,https://snomed.info/sct,371827001,Patient discharged alive (finding)
+outco_denguediag_main,,,,,,,,,,,,,,<FIELD>,https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
+outco_denguediag_class,"1, Uncomplicated dengue",,,,,,,,,,,https://snomed.info/sct,722862003,Dengue without warning signs (disorder),https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
+,"2, Dengue with warning signs",,,,,,,,,,,https://snomed.info/sct,722863008,Dengue with warning signs (disorder),https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
+,"3, Severe dengue",,,,,,,,,,,https://snomed.info/sct,20927009,Dengue hemorrhagic fever (disorder),https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
+outco_secondiag_oth,,,,,,,,,,,,,,<FIELD>,https://snomed.info/sct,85097005,Secondary diagnosis (contextual qualifier) (qualifier value),,,

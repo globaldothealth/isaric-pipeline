@@ -1,0 +1,4 @@
+﻿subjid,visitid,daily_date,vital_highesttem_c,vital_hr,vital_rr,vital_systolicbp,vital_diastolicbp,vital_spo2,vital_fio2spo2_02110,vital_fio2spo2_pcnt,vital_capillaryr,vital_avpu,vital_gcs,vital_urineflow
+1,10,2020-01-01,36.2,120,30,70,120,5,,75,1,1,1,150
+2,11,2021-02-02,37,100,40,80,130,6,10,85,0,2,1,200
+3,12,2022-03-03,35.5,70,50,90,140,7,,95,0,3,1,

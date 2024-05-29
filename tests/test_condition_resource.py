@@ -6,6 +6,21 @@ from fhirflat.resources.condition import Condition
 
 CONDITION_DICT_INPUT = {
     "id": "c201",
+    "extension": [
+        {
+            "url": "presenceAbsence",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "410605003",
+                        "display": "Present",
+                    }
+                ]
+            },
+        },
+        {"url": "prespecifiedQuery", "valueBoolean": True},
+    ],
     "identifier": [{"value": "12345"}],
     "clinicalStatus": {
         "coding": [
@@ -90,6 +105,9 @@ CONDITION_DICT_INPUT = {
 
 CONDITION_FLAT = {
     "resourceType": ["Condition"],
+    "extension.presenceAbsence.code": ["http://snomed.info/sct|410605003"],
+    "extension.presenceAbsence.text": ["Present"],
+    "extension.prespecifiedQuery": [True],
     "category.code": [
         [
             "http://snomed.info/sct|55607006",
@@ -111,6 +129,21 @@ CONDITION_FLAT = {
 }
 
 CONDITION_DICT_OUT = {
+    "extension": [
+        {"url": "prespecifiedQuery", "valueBoolean": True},
+        {
+            "url": "presenceAbsence",
+            "valueCodeableConcept": {
+                "coding": [
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "410605003",
+                        "display": "Present",
+                    }
+                ]
+            },
+        },
+    ],
     "clinicalStatus": {
         "coding": [
             {
@@ -177,6 +210,7 @@ def test_condition_to_flat():
     assert_frame_equal(
         pd.read_parquet("test_condition.parquet"),
         pd.DataFrame(CONDITION_FLAT),
+        check_like=True,
     )
     os.remove("test_condition.parquet")
 

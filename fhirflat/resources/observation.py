@@ -9,7 +9,7 @@ from pydantic.v1 import Field, validator
 import orjson
 from fhir.resources import fhirtypes
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar, Union
 
 JsonString: TypeAlias = str
@@ -67,7 +67,7 @@ class Observation(_Observation, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "instantiatesCanonical",
@@ -77,7 +77,7 @@ class Observation(_Observation, FHIRFlatBase):
         "referenceRange",
         "issued",
         "note",
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
@@ -92,13 +92,16 @@ class Observation(_Observation, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Observation:
+    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Observation:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
         for field in {
             "encounter",
@@ -108,7 +111,7 @@ class Observation(_Observation, FHIRFlatBase):
             "specimen",
             "device",
         }.intersection(data.keys()):
-            data[field] = {"reference": data[field]}
+            data[field] = {"reference": str(data[field])}
 
         # add default status back in
         data["status"] = "final"

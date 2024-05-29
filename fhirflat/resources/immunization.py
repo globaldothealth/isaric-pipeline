@@ -6,7 +6,7 @@ from .extension_types import timingPhaseType, dateTimeExtensionType
 from pydantic.v1 import Field, validator
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar, Union
 from fhir.resources import fhirtypes
 
@@ -37,7 +37,7 @@ class Immunization(_Immunization, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
         "identifier",
         "basedOn",
@@ -50,7 +50,7 @@ class Immunization(_Immunization, FHIRFlatBase):
         "informationSource",
         "performer",
         "note",
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
@@ -65,17 +65,21 @@ class Immunization(_Immunization, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Immunization:
+    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Immunization:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
-        for field in ({"patient", "encounter", "location"} | {
-            x for x in data.keys() if x.endswith(".reference")
-        }).intersection(data.keys()):
+        for field in (
+            {"patient", "encounter", "location"}
+            | {x for x in data.keys() if x.endswith(".reference")}
+        ).intersection(data.keys()):
             data[field] = {"reference": data[field]}
 
         # add default status back in

@@ -1,9 +1,16 @@
 from __future__ import annotations
 from fhir.resources.encounter import Encounter as _Encounter
+from fhir.resources.encounter import (
+    EncounterAdmission,
+    EncounterDiagnosis,
+    EncounterLocation,
+    EncounterParticipant,
+    EncounterReason,
+)
 from .base import FHIRFlatBase
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 
 from .extensions import relativePeriod, timingPhase
 from .extension_types import relativePeriodType, timingPhaseType
@@ -24,8 +31,8 @@ class Encounter(_Encounter, FHIRFlatBase):
         title="List of `Extension` items (represented as `dict` in JSON)",
         description=(
             """
-            Contains the Global.health 'eventTiming' and 'relativePeriod' extensions, and allows
-             extensions from other implementations to be included.
+            Contains the Global.health 'eventTiming' and 'relativePeriod' extensions,
+            and allows extensions from other implementations to be included.
             """
         ),
         # if property is element of this resource.
@@ -35,8 +42,7 @@ class Encounter(_Encounter, FHIRFlatBase):
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
-        "id",
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "identifier",
         "participant",  # participants other than the patient
         "appointment",  # appointment that scheduled the encounter
@@ -44,10 +50,18 @@ class Encounter(_Encounter, FHIRFlatBase):
         "dietPreference",
         "specialArrangement",  # if translator, streatcher, wheelchair etc. needed
         "specialCourtesy",  # contains ID information, VIP, board member, etc.
-    )
+    }
 
     # required attributes that are not present in the FHIRflat representation
     flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+
+    backbone_elements: ClassVar[dict] = {
+        "participant": EncounterParticipant,
+        "reason": EncounterReason,
+        "diagnosis": EncounterDiagnosis,
+        "admission": EncounterAdmission,
+        "location": EncounterLocation,
+    }
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):
@@ -60,13 +74,16 @@ class Encounter(_Encounter, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Encounter:
+    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Encounter:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        data = orjson.loads(data)
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
         for field in {
             "subject",

@@ -1,13 +1,11 @@
-from fhir.resources.patient import Patient
+from __future__ import annotations
+from fhir.resources.patient import Patient as _Patient
 from .base import FHIRFlatBase
-from .extension_types import (
-    ageType,
-    birthSexType,
-)
-from .extensions import Age, birthSex
+from .extension_types import ageType, birthSexType, raceType
+from .extensions import Age, birthSex, Race
 import orjson
 
-from ..flat2fhir import expand_concepts
+from fhirflat.flat2fhir import expand_concepts
 from typing import TypeAlias, ClassVar, Union
 from fhir.resources import fhirtypes
 from pydantic.v1 import Field, validator
@@ -15,23 +13,25 @@ from pydantic.v1 import Field, validator
 JsonString: TypeAlias = str
 
 
-class Patient(Patient, FHIRFlatBase):
-    extension: list[Union[ageType, birthSexType, fhirtypes.ExtensionType]] = Field(
-        None,
-        alias="extension",
-        title="Additional content defined by implementations",
-        description=(
-            """
+class Patient(_Patient, FHIRFlatBase):
+    extension: list[Union[ageType, birthSexType, raceType, fhirtypes.ExtensionType]] = (
+        Field(
+            None,
+            alias="extension",
+            title="Additional content defined by implementations",
+            description=(
+                """
             Contains the G.H 'age' and 'birthSex' extensions,
             and allows extensions from other implementations to be included."""
-        ),
-        # if property is element of this resource.
-        element_property=True,
-        union_mode="smart",
+            ),
+            # if property is element of this resource.
+            element_property=True,
+            union_mode="smart",
+        )
     )
 
     # attributes to exclude from the flat representation
-    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions + (
+    flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "identifier",
         "active",
         "name",
@@ -41,15 +41,16 @@ class Patient(Patient, FHIRFlatBase):
         "contact",
         "communication",
         "link",
-    )
+    }
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):
         age_count = sum(isinstance(item, Age) for item in extensions)
         birthsex_count = sum(isinstance(item, birthSex) for item in extensions)
+        race_count = sum(isinstance(item, Race) for item in extensions)
 
-        if age_count > 1 or birthsex_count > 1:
-            raise ValueError("Age and birthSex can only appear once.")
+        if age_count > 1 or birthsex_count > 1 or race_count > 1:
+            raise ValueError("Age, birthSex and Race can only appear once.")
 
         return extensions
 
@@ -69,11 +70,20 @@ class Patient(Patient, FHIRFlatBase):
         return descrip
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> Patient:
-        # Load the data and apply resource-specific changes
-        data = orjson.loads(data)
+    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Patient:
+        """
+        Load data into a dictionary-like structure, then
+        apply resource-specific changes and unpack flattened data
+        like codeableConcepts back into structured data.
+        """
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
 
-        # # Strip time from the birthDate
+        data["id"] = str(data["id"])
+
+        # Strip time from the birthDate
         if "birthDate" in data:
             data["birthDate"] = data["birthDate"].split("T", 1)[0]
 

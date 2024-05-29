@@ -1,0 +1,44 @@
+[build-system]
+requires = ['setuptools>=40.8.0']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools]
+packages = ["fhirflat"]
+
+[project]
+name = "fhirflat"
+version = "0.1.0"
+description = "Flattened FHIR resources"
+authors = [
+    {name = "Pip Liggins", email = "philippa.liggins@dtc.ox.ac.uk"},
+  {name = "Abhishek Dasgupta", email = "abhishek.dasgupta@dtc.ox.ac.uk"},
+]
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+readme = "README.md"
+classifiers = ["License :: OSI Approved :: MIT License"]
+dependencies = [
+    "fhir.resources==7.1.0",
+    "numpy==1.26.4",
+    "orjson==3.9.13",
+    "pandas>=2.2.0",
+    "pyarrow==15.0.0",
+    "pydantic==2.6.1",
+    "pydantic_core==2.16.2",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-cov",
+  "pytest-unordered"
+]
+
+[project.urls]
+Home = "https://github.com/globaldothealth/fhirflat"
+
+[tool.black]
+line-length = 88
+
+[tool.pytest.ini_options]
+pythonpath = "."

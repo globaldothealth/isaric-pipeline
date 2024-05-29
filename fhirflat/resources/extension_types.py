@@ -4,7 +4,7 @@ from fhir.resources.fhirtypes import AbstractType as _AbstractType
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pydantic.v1.types import CallableGenerator
+    from pydantic.v1.typing import CallableGenerator
 
 
 class AbstractType(_AbstractType):
@@ -49,6 +49,18 @@ class ageType(AbstractType):
 
 class birthSexType(AbstractType):
     __resource_type__ = "birthSex"
+
+
+class raceType(AbstractType):
+    __resource_type__ = "Race"
+
+
+class presenceAbsenceType(AbstractType):
+    __resource_type__ = "presenceAbsence"
+
+
+class prespecifiedQueryType(AbstractType):
+    __resource_type__ = "prespecifiedQuery"
 
 
 class dateTimeExtensionType(AbstractType):

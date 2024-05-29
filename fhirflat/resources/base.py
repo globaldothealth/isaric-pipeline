@@ -1,28 +1,35 @@
 # from pydantic import BaseModel
 from __future__ import annotations
-from fhir.resources.domainresource import DomainResource
+from fhir.resources.domainresource import DomainResource as _DomainResource
 
 import pandas as pd
 import orjson
 
-from ..fhir2flat import fhir2flat
+from fhirflat.fhir2flat import fhir2flat
+from fhirflat.flat2fhir import expand_concepts
+
 from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
 
 
-class FHIRFlatBase(DomainResource):
+class FHIRFlatBase(_DomainResource):
+    """
+    Base class for FHIR resources to add FHIRflat functionality.
+    """
 
-    flat_exclusions: ClassVar[set[str]] = (
+    flat_exclusions: ClassVar[set[str]] = {
         "meta",
         "implicitRules",
         "language",
         "text",
         "contained",
         "modifierExtension",
-    )
+    }
 
     flat_defaults: ClassVar[list[str]] = []
+
+    backbone_elements: ClassVar[dict] = {}
 
     @classmethod
     def attr_lists(cls) -> list[str]:
@@ -39,7 +46,7 @@ class FHIRFlatBase(DomainResource):
         return [x for x in cls.elements_sequence() if x not in cls.flat_exclusions]
 
     @classmethod
-    def cleanup(cls, data: JsonString) -> FHIRFlatBase:
+    def cleanup(cls, data: JsonString | dict, json_data=True) -> FHIRFlatBase:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
@@ -72,6 +79,91 @@ class FHIRFlatBase(DomainResource):
             return df["fhir"].iloc[0]
         else:
             return list(df["fhir"])
+
+    @classmethod
+    def ingest_backbone_elements(cls, mapped_data: pd.Series) -> pd.Series:
+        """
+        Unflattens ordered lists of data and forms the correct FHIR format which won't
+        be flattened after ingestion (*_dense columns).
+
+        Extends the flat2fhir.expand_concepts function specifically for data ingestion.
+
+        Parameters
+        ----------
+        mapped_data: pd.Series
+            Pandas series of FHIRflat-like dictionaries ready to be converted to FHIR
+            format.
+
+        Returns
+        -------
+        pd.Series
+
+        """
+
+        def fhir_format(row: pd.Series) -> pd.Series:
+            for b_e, b_c in cls.backbone_elements.items():
+                keys_present = [key for key in row if key.startswith(b_e)]
+                if keys_present:
+                    condensed_dict = {k: row[k] for k in keys_present}
+                    if all(
+                        not isinstance(v, list) or len(v) == 1
+                        for v in condensed_dict.values()
+                    ):
+                        continue
+                    else:
+                        backbone_list = []
+                        for i in range(len(next(iter(condensed_dict.values())))):
+                            first_item = {
+                                k.lstrip(b_e + "."): v[i]
+                                for k, v in condensed_dict.items()
+                            }
+                            backbone_list.append(expand_concepts(first_item, b_c))
+                        for k_d in condensed_dict:
+                            row.pop(k_d)
+                        row[b_e] = backbone_list
+            return row
+
+        condensed_mapped_data = mapped_data.apply(fhir_format)
+        return condensed_mapped_data
+
+    @classmethod
+    def ingest_to_flat(cls, data: pd.DataFrame, filename: str):
+        """
+        Takes a pandas dataframe and populates the resource with the data.
+        Creates a FHIRflat parquet file for the resources.
+
+        data: pd.DataFrame
+            Pandas dataframe containing the data
+        """
+
+        data.loc[:, "flat_dict"] = cls.ingest_backbone_elements(data["flat_dict"])
+
+        # Creates a columns of FHIR resource instances
+        data["fhir"] = data["flat_dict"].apply(
+            lambda x: cls.cleanup(x, json_data=False)
+        )
+
+        # flattens resources back out
+        flat_df = data["fhir"].apply(lambda x: x.to_flat())
+
+        # Stops parquet conversion from stripping the time from mixed date/datetime
+        # columns
+        for date_cols in [
+            x for x in flat_df.columns if "date" in x.lower() or "period" in x.lower()
+        ]:
+            flat_df[date_cols] = flat_df[date_cols].astype(str)
+            flat_df[date_cols] = flat_df[date_cols].replace("nan", None)
+
+        for coding_column in [
+            x
+            for x in flat_df.columns
+            if x.lower().endswith(".code") or x.lower().endswith(".text")
+        ]:
+            flat_df[coding_column] = flat_df[coding_column].apply(
+                lambda x: [x] if isinstance(x, str) else x
+            )
+
+        flat_df.to_parquet(f"{filename}.parquet")
 
     @classmethod
     def fhir_bulk_import(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:
@@ -110,7 +202,8 @@ class FHIRFlatBase(DomainResource):
         source_file: str
             Path to the FHIR resource file.
         output_name: str (optional)
-            Name of the parquet file to be generated, optional, defaults to {resource}.parquet
+            Name of the parquet file to be generated, optional, defaults to
+            {resource}.parquet
         """
 
         if not output_name:
@@ -128,11 +221,17 @@ class FHIRFlatBase(DomainResource):
             flat_rows.append(fhir2flat(resource, lists=list_resources))
 
         df = pd.concat(flat_rows)
+
+        # remove required attributes now it's in the flat representation
+        for attr in cls.flat_defaults:
+            df.drop(list(df.filter(regex=attr)), axis=1, inplace=True)
+
         df.to_parquet(output_name)
 
-    def to_flat(self, filename: str) -> None:
+    def to_flat(self, filename: str | None = None) -> None | pd.Series:
         """
         Generates a FHIRflat parquet file from the resource.
+        If no file name is provided, returns a pandas Series.
 
         Parameters
         ----------
@@ -154,4 +253,8 @@ class FHIRFlatBase(DomainResource):
         for attr in self.flat_defaults:
             flat_df.drop(list(flat_df.filter(regex=attr)), axis=1, inplace=True)
 
-        flat_df.to_parquet(filename)
+        if filename:
+            flat_df.to_parquet(filename)
+        else:
+            assert flat_df.shape[0] == 1
+            return flat_df.loc[0]
