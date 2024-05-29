@@ -33,6 +33,9 @@ env/
 lib/
 lib64/
 
+# Documentation
+_build/
+
 # Distribution / packaging
 .Python
 build/
