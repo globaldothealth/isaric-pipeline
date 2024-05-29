@@ -254,6 +254,8 @@ def convert_data_to_flat(
     mapping_files_types: tuple[dict, dict] | None = None,
     sheet_id: str | None = None,
     subject_id="subjid",
+    date_format="%Y-%m-%d",
+    timezone=None,
 ):
     """
     Takes raw clinical data (currently assumed to be a one-row-per-patient format like
@@ -334,5 +336,8 @@ def convert_data_to_flat(
             raise ValueError(f"Unknown mapping type {t}")
 
         resource.ingest_to_flat(
-            df, os.path.join(folder_name, resource.__name__.lower())
+            df,
+            os.path.join(folder_name, resource.__name__.lower()),
+            date_format,
+            timezone,
         )
