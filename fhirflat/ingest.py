@@ -76,7 +76,7 @@ def find_field_value(
     return return_val
 
 
-def format_dates(date_str: str, date_format: str, timezone=str) -> dict:
+def format_dates(date_str: str, date_format: str, timezone: str) -> dict:
     """
     Converts dates into ISO8601 format with timezone information.
     """
@@ -212,7 +212,7 @@ def create_dictionary(
     one_to_one=False,
     subject_id="subjid",
     date_format="%Y-%m-%d",
-    timezone=None,
+    timezone="UTC",
 ) -> pd.DataFrame | None:
     """
     Given a data file and a single mapping file for one FHIR resource type,
