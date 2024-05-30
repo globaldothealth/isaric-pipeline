@@ -153,20 +153,13 @@ class FHIRFlatBase(_DomainResource):
         for date_cols in [
             x for x in flat_df.columns if "date" in x.lower() or "period" in x.lower()
         ]:
-            dti = pd.to_datetime(flat_df[date_cols], format=date_format)
-            dti = dti.dt.tz_localize(timezone)
-            flat_df[date_cols] = dti.dt.strftime("%Y-%m-%dT%H:%M:%S%z")
-
             # replace nan with None
             flat_df[date_cols] = flat_df[date_cols].replace(np.nan, None)
 
-            # remove time & timezone info if none was provided
+            # convert datetime objects to ISO strings
+            # (stops unwanted parquet conversions)
             flat_df[date_cols] = flat_df[date_cols].apply(
-                lambda x: (
-                    (x.split("T")[0] if "T00:00:00" in x else x)
-                    if x is not None
-                    else None
-                )
+                lambda x: (x.isoformat() if x is not None else None)
             )
 
         for coding_column in [
