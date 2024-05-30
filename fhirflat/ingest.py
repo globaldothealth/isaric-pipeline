@@ -5,6 +5,9 @@ FHIRflat.
 
 import pandas as pd
 import numpy as np
+from datetime import datetime
+import dateutil.parser
+from zoneinfo import ZoneInfo
 import warnings
 import os
 from math import isnan
@@ -24,44 +27,84 @@ TODO
 """
 
 
-def find_field_value(row, response, mapp, raw_data=None):
+def find_field_value(
+    row, response, fhir_attr, mapp, date_format, timezone, raw_data=None
+):
     """
     Returns the data for a given field, given the mapping.
     For one to many resources the raw data is provided to allow for searching for other
     fields than in the melted data.
     """
     if mapp == "<FIELD>":
-        return response
+        return_val = response
     elif "+" in mapp:
         mapp = mapp.split("+")
-        results = [find_field_value(row, response, m, raw_data) for m in mapp]
+        results = [
+            find_field_value(row, response, "", m, date_format, timezone, raw_data)
+            for m in mapp
+        ]
         results = [str(x) for x in results if not (isinstance(x, float) and isnan(x))]
-        return " ".join(results) if "/" not in results[0] else "".join(results)
+        return_val = " ".join(results) if "/" not in results[0] else "".join(results)
     elif "if not" in mapp:
         mapp = mapp.replace(" ", "").split("ifnot")
-        results = [find_field_value(row, response, m, raw_data) for m in mapp]
+        results = [
+            find_field_value(row, response, "", m, date_format, timezone, raw_data)
+            for m in mapp
+        ]
         x, y = results
         if isinstance(y, float):
-            return x if isnan(y) else None
+            return_val = x if isnan(y) else None
         else:
-            return x if not y else None
+            return_val = x if not y else None
     elif "<" in mapp:
         col = mapp.lstrip("<").rstrip(">")
         try:
-            return row[col]
+            return_val = row[col]
         except KeyError:
             if raw_data is not None:
                 try:
-                    return raw_data.loc[row["index"], col]
+                    return_val = raw_data.loc[row["index"], col]
                 except KeyError:
                     raise KeyError(f"Column {col} not found in data")
             else:
                 raise KeyError(f"Column {col} not found in the filtered data")
     else:
-        return mapp
+        return_val = mapp
+
+    if "date" in fhir_attr.lower() or "period" in fhir_attr.lower():
+        return format_dates(return_val, date_format, timezone)
+    return return_val
 
 
-def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> dict:
+def format_dates(date_str: str, date_format: str, timezone: str) -> dict:
+    """
+    Converts dates into ISO8601 format with timezone information.
+    """
+
+    if date_str is None:
+        return date_str
+
+    new_tz = ZoneInfo(timezone)
+
+    try:
+        date_time = datetime.strptime(date_str, date_format)
+        date_time_aware = date_time.replace(tzinfo=new_tz)
+        if "%H" not in date_format:
+            date_time_aware = date_time_aware.date()
+    except ValueError:
+        # Unconverted data remains in the string (i.e. time is present)
+        date, time = date_str.split(" ")
+        date = datetime.strptime(date, date_format)
+        time = dateutil.parser.parse(time).time()
+        date_time = datetime.combine(date, time)
+        date_time_aware = date_time.replace(tzinfo=new_tz)
+
+    return date_time_aware.isoformat()
+
+
+def create_dict_wide(
+    row: pd.Series, map_df: pd.DataFrame, date_format: str, timezone: str
+) -> dict:
     """
     Takes a wide-format dataframe and iterates through the columns of the row,
     applying the mapping to each column and produces a fhirflat-like dictionary to
@@ -83,7 +126,9 @@ def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> dict:
                         k: (
                             v
                             if "<" not in str(v)
-                            else find_field_value(row, response, v)
+                            else find_field_value(
+                                row, response, k, v, date_format, timezone
+                            )
                         )
                         for k, v in mapping.items()
                     }
@@ -119,7 +164,11 @@ def create_dict_wide(row: pd.Series, map_df: pd.DataFrame) -> dict:
 
 
 def create_dict_long(
-    row: pd.Series, full_df: pd.DataFrame, map_df: pd.DataFrame
+    row: pd.Series,
+    full_df: pd.DataFrame,
+    map_df: pd.DataFrame,
+    date_format: str,
+    timezone: str,
 ) -> dict | None:
     """
     Takes a long-format dataframe and a mapping file, and produces a fhirflat-like
@@ -139,7 +188,9 @@ def create_dict_long(
                 k: (
                     v
                     if "<" not in str(v)
-                    else find_field_value(row, response, v, raw_data=full_df)
+                    else find_field_value(
+                        row, response, k, v, date_format, timezone, raw_data=full_df
+                    )
                 )
                 for k, v in mapping.items()
             }
@@ -160,6 +211,8 @@ def create_dictionary(
     resource: str,
     one_to_one=False,
     subject_id="subjid",
+    date_format="%Y-%m-%d",
+    timezone="UTC",
 ) -> pd.DataFrame | None:
     """
     Given a data file and a single mapping file for one FHIR resource type,
@@ -179,6 +232,10 @@ def create_dictionary(
         Whether the resource should be mapped as one-to-one or one-to-many.
     subject_id: str
         The name of the column containing the subject ID in the data file.
+    date_format: str
+        The format of the dates in the data file. E.g. "%Y-%m-%d"
+    timezone: str
+        The timezone of the dates in the data file. E.g. "Europe/London"
     """
 
     data: pd.DataFrame = pd.read_csv(data_file, header=0)
@@ -238,12 +295,12 @@ def create_dictionary(
     # Generate the flat_like dictionary
     if one_to_one:
         filtered_data["flat_dict"] = filtered_data.apply(
-            create_dict_wide, args=[map_df], axis=1
+            create_dict_wide, args=[map_df, date_format, timezone], axis=1
         )
         return filtered_data
     else:
         melted_data["flat_dict"] = melted_data.apply(
-            create_dict_long, args=[data, map_df], axis=1
+            create_dict_long, args=[data, map_df, date_format, timezone], axis=1
         )
         return melted_data["flat_dict"].to_frame()
 
@@ -251,6 +308,8 @@ def create_dictionary(
 def convert_data_to_flat(
     data: str,
     folder_name: str,
+    date_format: str,
+    timezone: str,
     mapping_files_types: tuple[dict, dict] | None = None,
     sheet_id: str | None = None,
     subject_id="subjid",
@@ -266,6 +325,10 @@ def convert_data_to_flat(
         The path to the raw clinical data file.
     folder_name: str
         The name of the folder to store the FHIRflat files.
+    date_format: str
+        The format of the dates in the data file. E.g. "%Y-%m-%d"
+    timezone: str
+        The timezone of the dates in the data file. E.g. "Europe/London"
     mapping_files_types: tuple[dict, dict] | None
         A tuple containing two dictionaries, one with the mapping files for each
         resource type and one with the mapping type (either one-to-one or one-to-many)
@@ -315,6 +378,8 @@ def convert_data_to_flat(
                 resource.__name__,
                 one_to_one=True,
                 subject_id=subject_id,
+                date_format=date_format,
+                timezone=timezone,
             )
             if df is None:
                 continue
@@ -325,6 +390,8 @@ def convert_data_to_flat(
                 resource.__name__,
                 one_to_one=False,
                 subject_id=subject_id,
+                date_format=date_format,
+                timezone=timezone,
             )
             if df is None:
                 continue
@@ -334,5 +401,8 @@ def convert_data_to_flat(
             raise ValueError(f"Unknown mapping type {t}")
 
         resource.ingest_to_flat(
-            df, os.path.join(folder_name, resource.__name__.lower())
+            df,
+            os.path.join(folder_name, resource.__name__.lower()),
+            date_format,
+            timezone,
         )

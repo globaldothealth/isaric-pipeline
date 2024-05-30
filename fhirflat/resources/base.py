@@ -2,7 +2,9 @@
 from __future__ import annotations
 from fhir.resources.domainresource import DomainResource as _DomainResource
 
+import datetime
 import pandas as pd
+import numpy as np
 import orjson
 
 from fhirflat.fhir2flat import fhir2flat
@@ -127,7 +129,9 @@ class FHIRFlatBase(_DomainResource):
         return condensed_mapped_data
 
     @classmethod
-    def ingest_to_flat(cls, data: pd.DataFrame, filename: str):
+    def ingest_to_flat(
+        cls, data: pd.DataFrame, filename: str, date_format: str, timezone: str
+    ):
         """
         Takes a pandas dataframe and populates the resource with the data.
         Creates a FHIRflat parquet file for the resources.
@@ -146,13 +150,25 @@ class FHIRFlatBase(_DomainResource):
         # flattens resources back out
         flat_df = data["fhir"].apply(lambda x: x.to_flat())
 
-        # Stops parquet conversion from stripping the time from mixed date/datetime
-        # columns
+        # create FHIR expected date format
         for date_cols in [
-            x for x in flat_df.columns if "date" in x.lower() or "period" in x.lower()
+            x
+            for x in flat_df.columns
+            if ("date" in x.lower() or "period" in x.lower() or "time" in x.lower())
         ]:
-            flat_df[date_cols] = flat_df[date_cols].astype(str)
-            flat_df[date_cols] = flat_df[date_cols].replace("nan", None)
+            # replace nan with None
+            flat_df[date_cols] = flat_df[date_cols].replace(np.nan, None)
+
+            # convert datetime objects to ISO strings
+            # (stops unwanted parquet conversions)
+            # but skips over extensions that have floats/strings rather than dates
+            flat_df[date_cols] = flat_df[date_cols].apply(
+                lambda x: (
+                    x.isoformat()
+                    if isinstance(x, datetime.datetime) or isinstance(x, datetime.date)
+                    else x
+                )
+            )
 
         for coding_column in [
             x

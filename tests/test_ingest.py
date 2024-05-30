@@ -1,6 +1,7 @@
 from fhirflat.ingest import (
     create_dictionary,
     convert_data_to_flat,
+    format_dates,
 )
 from fhirflat.resources.encounter import Encounter
 from fhirflat.resources.observation import Observation
@@ -10,12 +11,37 @@ import os
 import shutil
 from decimal import Decimal
 import numpy as np
+import pytest
+
+
+@pytest.mark.parametrize(
+    "date_srt, format, tz, expected",
+    [
+        ("2021-04-01", "%Y-%m-%d", "Brazil/East", "2021-04-01"),
+        ("2021-04-01 18:00", "%Y-%m-%d", "Brazil/East", "2021-04-01T18:00:00-03:00"),
+        ("2021-04-01 00:30", "%Y-%m-%d", "UTC", "2021-04-01T00:30:00+00:00"),
+        (
+            "2021-04-01 12:00",
+            "%Y-%m-%d %H:%M",
+            "Brazil/East",
+            "2021-04-01T12:00:00-03:00",
+        ),
+        (None, "%Y-%m-%d", "Brazil/East", None),
+    ],
+)
+def test_format_dates(date_srt, format, tz, expected):
+    assert format_dates(date_srt, format, tz) == expected
+
+
+def test_format_dates_error():
+    with pytest.raises(ValueError):
+        format_dates("2021-04-01", "%m/%d/%Y", "Brazil/East")
 
 
 ENCOUNTER_DICT_OUT = {
     "id": 11,
     "subject": "Patient/2",
-    "actualPeriod.start": "2021-04-01 18:00",
+    "actualPeriod.start": "2021-04-01T18:00:00-03:00",
     "actualPeriod.end": "2021-04-10",
     "extension.timingPhase.system": "https://snomed.info/sct",
     "extension.timingPhase.code": 278307001,
@@ -50,6 +76,8 @@ def test_create_dict_one_to_one_single_row():
         "tests/dummy_data/encounter_dummy_mapping.csv",
         "Encounter",
         one_to_one=True,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
     )
 
     assert df is not None
@@ -118,7 +146,7 @@ ENCOUNTER_SINGLE_ROW_FLAT = {
         },
     ],
     "subject": "Patient/2",
-    "actualPeriod.start": "2021-04-01 18:00:00",
+    "actualPeriod.start": "2021-04-01T18:00:00-03:00",
     "actualPeriod.end": "2021-04-10",
     "admission.dischargeDisposition.code": "https://snomed.info/sct|371827001",
     "admission.dischargeDisposition.text": "Patient discharged alive (finding)",
@@ -133,10 +161,14 @@ def test_load_data_one_to_one_single_row():
         "tests/dummy_data/encounter_dummy_mapping.csv",
         "Encounter",
         one_to_one=True,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
     )
 
     assert df is not None
-    Encounter.ingest_to_flat(df, "encounter_ingestion_single")
+    Encounter.ingest_to_flat(
+        df, "encounter_ingestion_single", "%Y-%m-%d", "Brazil/East"
+    )
 
     assert_frame_equal(
         pd.read_parquet("encounter_ingestion_single.parquet"),
@@ -294,9 +326,9 @@ ENCOUNTER_SINGLE_ROW_MULTI = {
     "id": ["10", "11", "12", "13"],
     "actualPeriod.start": [
         "2020-05-01",
-        "2021-04-01 18:00:00",
-        "2021-05-10 17:30:00",
-        "2022-06-15 21:00:00",
+        "2021-04-01T18:00:00-03:00",
+        "2021-05-10T17:30:00-03:00",
+        "2022-06-15T21:00:00-03:00",
     ],
     "actualPeriod.end": [
         "2020-05-01",
@@ -337,10 +369,12 @@ def test_load_data_one_to_one_multi_row():
         "tests/dummy_data/encounter_dummy_mapping.csv",
         "Encounter",
         one_to_one=True,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
     )
 
     assert df is not None
-    Encounter.ingest_to_flat(df, "encounter_ingestion_multi")
+    Encounter.ingest_to_flat(df, "encounter_ingestion_multi", "%Y-%m-%d", "Brazil/East")
 
     assert_frame_equal(
         pd.read_parquet("encounter_ingestion_multi.parquet"),
@@ -429,10 +463,14 @@ def test_load_data_one_to_many_multi_row():
         "tests/dummy_data/observation_dummy_mapping.csv",
         "Observation",
         one_to_one=False,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
     )
 
     assert df is not None
-    Observation.ingest_to_flat(df.dropna(), "observation_ingestion")
+    Observation.ingest_to_flat(
+        df.dropna(), "observation_ingestion", "%Y-%m-%d", "Brazil/East"
+    )
 
     full_df = pd.read_parquet("observation_ingestion.parquet")
 
@@ -459,8 +497,10 @@ def test_convert_data_to_flat_local_mapping():
 
     convert_data_to_flat(
         "tests/dummy_data/combined_dummy_data.csv",
-        mapping_files_types=(mappings, resource_types),
         folder_name=output_folder,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
+        mapping_files_types=(mappings, resource_types),
     )
 
     encounter_df = pd.read_parquet("tests/ingestion_output/encounter.parquet")
