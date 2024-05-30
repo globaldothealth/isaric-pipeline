@@ -2,6 +2,7 @@
 from __future__ import annotations
 from fhir.resources.domainresource import DomainResource as _DomainResource
 
+import datetime
 import pandas as pd
 import numpy as np
 import orjson
@@ -151,15 +152,22 @@ class FHIRFlatBase(_DomainResource):
 
         # create FHIR expected date format
         for date_cols in [
-            x for x in flat_df.columns if "date" in x.lower() or "period" in x.lower()
+            x
+            for x in flat_df.columns
+            if ("date" in x.lower() or "period" in x.lower() or "time" in x.lower())
         ]:
             # replace nan with None
             flat_df[date_cols] = flat_df[date_cols].replace(np.nan, None)
 
             # convert datetime objects to ISO strings
             # (stops unwanted parquet conversions)
+            # but skips over extensions that have floats/strings rather than dates
             flat_df[date_cols] = flat_df[date_cols].apply(
-                lambda x: (x.isoformat() if x is not None else None)
+                lambda x: (
+                    x.isoformat()
+                    if isinstance(x, datetime.datetime) or isinstance(x, datetime.date)
+                    else x
+                )
             )
 
         for coding_column in [
