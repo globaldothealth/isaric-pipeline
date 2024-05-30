@@ -4,6 +4,9 @@
 *.sublime-project
 *.sublime-workspace
 
+# Vim tags
+tags
+
 # Python
 __pycache__/
 *.pyc
