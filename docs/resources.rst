@@ -1,0 +1,2 @@
+.. automodule:: fhirflat.resources
+    :members:

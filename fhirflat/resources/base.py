@@ -59,7 +59,7 @@ class FHIRFlatBase(_DomainResource):
     @classmethod
     def from_flat(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:
         """
-        Takes a FHIRflat pandas dataframe and populates the resource with the data.
+        Takes a FHIRflat parquet file and populates the resource with the data.
 
         Parameters
         ----------
@@ -86,7 +86,7 @@ class FHIRFlatBase(_DomainResource):
     def ingest_backbone_elements(cls, mapped_data: pd.Series) -> pd.Series:
         """
         Unflattens ordered lists of data and forms the correct FHIR format which won't
-        be flattened after ingestion (*_dense columns).
+        be flattened after ingestion (``*_dense`` columns).
 
         Extends the flat2fhir.expand_concepts function specifically for data ingestion.
 
@@ -99,7 +99,6 @@ class FHIRFlatBase(_DomainResource):
         Returns
         -------
         pd.Series
-
         """
 
         def fhir_format(row: pd.Series) -> pd.Series:
@@ -134,6 +133,8 @@ class FHIRFlatBase(_DomainResource):
         Takes a pandas dataframe and populates the resource with the data.
         Creates a FHIRflat parquet file for the resources.
 
+        Parameters
+        ----------
         data: pd.DataFrame
             Pandas dataframe containing the data
         """
@@ -244,8 +245,7 @@ class FHIRFlatBase(_DomainResource):
 
     def to_flat(self, filename: str | None = None) -> None | pd.Series:
         """
-        Generates a FHIRflat parquet file from the resource.
-        If no file name is provided, returns a pandas Series.
+        Generates a FHIRflat parquet file from the resource, or returns a Series
 
         Parameters
         ----------

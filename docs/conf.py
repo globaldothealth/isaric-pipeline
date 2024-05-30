@@ -9,9 +9,10 @@
 import os
 import sys
 
+import better
+
 # Add root dir so that adtl module is visible to Sphinx
 sys.path.insert(0, os.path.abspath(".."))
-sys.path.insert(0, os.path.abspath("."))
 
 project = "fhirflat"
 copyright = "2024, Global.health"
@@ -29,26 +30,19 @@ extensions = [
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", ".venv"]
-
+toc_object_entries = False  # prevent classes from showing in toctree
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "furo"
+html_theme = "better"
 html_static_path = ["_static"]
+html_theme_path=[better.better_theme_path]
+html_short_title = "Home"
 
 html_theme_options = {
-    "light_css_variables": {
-        "color-brand-primary": "#0e7569",
-        "color-problematic": "#0e7569",
-        "color-brand-content": "#0e7569",
-        "color-background-secondary": "#ecf3f0",
-        "color-background-hover": "#cfe6db",
-    },
-    "dark_css_variables": {
-        "color-brand-primary": "#d2d9d6",
-        "color-problematic": "#d2d9d6",
-        "color-brand-content": "#d2d9d6",
-        "color-background-secondary": "#0b5950",
-    },
+    "rightsidebar": True,
+    "sidebarwidth": "25rem",
+    "cssfiles": ["_static/style.css"],
+    "showheader": False,
 }
