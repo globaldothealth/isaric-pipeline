@@ -1,16 +1,18 @@
 from __future__ import annotations
+
+from typing import ClassVar, TypeAlias, Union
+
+import orjson
+from fhir.resources import fhirtypes
 from fhir.resources.observation import Observation as _Observation
 from fhir.resources.observation import ObservationComponent as _ObservationComponent
+from pydantic.v1 import Field, validator
+
+from fhirflat.flat2fhir import expand_concepts
 
 from .base import FHIRFlatBase
 from .extension_types import dateTimeExtensionType, timingPhaseType
 from .extensions import timingPhase
-from pydantic.v1 import Field, validator
-import orjson
-from fhir.resources import fhirtypes
-
-from fhirflat.flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar, Union
 
 JsonString: TypeAlias = str
 
@@ -80,7 +82,7 @@ class Observation(_Observation, FHIRFlatBase):
     }
 
     # required attributes that are not present in the FHIRflat representation
-    flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+    flat_defaults: ClassVar[list[str]] = [*FHIRFlatBase.flat_defaults, "status"]
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):
@@ -120,7 +122,7 @@ class Observation(_Observation, FHIRFlatBase):
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            if type(data[field]) is not list:
+            if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
         return cls(**data)

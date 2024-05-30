@@ -1,10 +1,13 @@
 from __future__ import annotations
-from fhir.resources.researchsubject import ResearchSubject as _ResearchSubject
-from .base import FHIRFlatBase
+
+from typing import ClassVar, TypeAlias
+
 import orjson
+from fhir.resources.researchsubject import ResearchSubject as _ResearchSubject
 
 from fhirflat.flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+
+from .base import FHIRFlatBase
 
 JsonString: TypeAlias = str
 
@@ -18,7 +21,7 @@ class ResearchSubject(_ResearchSubject, FHIRFlatBase):
     }
 
     # required attributes that are not present in the FHIRflat representation
-    flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+    flat_defaults: ClassVar[list[str]] = [*FHIRFlatBase.flat_defaults, "status"]
 
     @classmethod
     def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> ResearchSubject:
@@ -45,7 +48,7 @@ class ResearchSubject(_ResearchSubject, FHIRFlatBase):
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            if type(data[field]) is not list:
+            if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
         return cls(**data)

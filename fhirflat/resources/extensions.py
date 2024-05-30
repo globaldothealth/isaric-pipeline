@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from typing import Any, Union
+
+from fhir.resources import fhirtypes
 from fhir.resources.datatype import DataType as _DataType
 from fhir.resources.fhirprimitiveextension import (
     FHIRPrimitiveExtension as _FHIRPrimitiveExtension,
 )
-from fhir.resources import fhirtypes
-from pydantic.v1 import Field, validator, root_validator
-from typing import Union, Any
+from pydantic.v1 import Field, root_validator, validator
 
 from . import extension_types as et
 

@@ -1,4 +1,9 @@
 from __future__ import annotations
+
+from typing import ClassVar, TypeAlias, Union
+
+import orjson
+from fhir.resources import fhirtypes
 from fhir.resources.encounter import Encounter as _Encounter
 from fhir.resources.encounter import (
     EncounterAdmission,
@@ -7,16 +12,13 @@ from fhir.resources.encounter import (
     EncounterParticipant,
     EncounterReason,
 )
-from .base import FHIRFlatBase
-import orjson
+from pydantic.v1 import Field, validator
 
 from fhirflat.flat2fhir import expand_concepts
 
-from .extensions import relativePeriod, timingPhase
+from .base import FHIRFlatBase
 from .extension_types import relativePeriodType, timingPhaseType
-from pydantic.v1 import Field, validator
-from typing import TypeAlias, ClassVar, Union
-from fhir.resources import fhirtypes
+from .extensions import relativePeriod, timingPhase
 
 JsonString: TypeAlias = str
 
@@ -53,7 +55,7 @@ class Encounter(_Encounter, FHIRFlatBase):
     }
 
     # required attributes that are not present in the FHIRflat representation
-    flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+    flat_defaults: ClassVar[list[str]] = [*FHIRFlatBase.flat_defaults, "status"]
 
     backbone_elements: ClassVar[dict] = {
         "participant": EncounterParticipant,
@@ -104,7 +106,7 @@ class Encounter(_Encounter, FHIRFlatBase):
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            if type(data[field]) is not list:
+            if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
         return cls(**data)

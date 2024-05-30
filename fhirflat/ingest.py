@@ -3,14 +3,16 @@ Stores the main functions for converting clinical data (initally from RedCap-ARC
 FHIRflat.
 """
 
-import pandas as pd
-import numpy as np
-from datetime import datetime
-import dateutil.parser
-from zoneinfo import ZoneInfo
-import warnings
 import os
+import warnings
+from datetime import datetime
 from math import isnan
+from zoneinfo import ZoneInfo
+
+import dateutil.parser
+import numpy as np
+import pandas as pd
+
 from fhirflat.util import get_local_resource
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
@@ -60,14 +62,14 @@ def find_field_value(
         col = mapp.lstrip("<").rstrip(">")
         try:
             return_val = row[col]
-        except KeyError:
+        except KeyError as e:
             if raw_data is not None:
                 try:
                     return_val = raw_data.loc[row["index"], col]
                 except KeyError:
-                    raise KeyError(f"Column {col} not found in data")
+                    raise KeyError(f"Column {col} not found in data") from e
             else:
-                raise KeyError(f"Column {col} not found in the filtered data")
+                raise KeyError(f"Column {col} not found in the filtered data") from e
     else:
         return_val = mapp
 
@@ -138,6 +140,7 @@ def create_dict_wide(
                     warnings.warn(
                         f"No mapping for column {column} response {response}",
                         UserWarning,
+                        stacklevel=2,
                     )
                     continue
             else:
@@ -201,6 +204,7 @@ def create_dict_long(
             warnings.warn(
                 f"No mapping for column {column} response {response}",
                 UserWarning,
+                stacklevel=2,
             )
             return None
 
@@ -246,7 +250,9 @@ def create_dictionary(
     filtered_data = data.loc[:, data.columns.isin(relevant_cols)].copy()
 
     if filtered_data.empty:
-        warnings.warn(f"No data found for the {resource} resource.", UserWarning)
+        warnings.warn(
+            f"No data found for the {resource} resource.", UserWarning, stacklevel=2
+        )
         return None
 
     if one_to_one:
@@ -356,12 +362,7 @@ def convert_data_to_flat(
         )
 
         df_types = pd.read_csv(sheet_link, header=0, index_col="Resources")
-        types = dict(
-            zip(
-                df_types.index,
-                df_types["Resource Type"],
-            )
-        )
+        types = dict(zip(df_types.index, df_types["Resource Type"], strict=True))
         sheet_keys = {r: df_types.loc[r, "Sheet ID"] for r in types.keys()}
         mappings = {
             get_local_resource(r): sheet_link + f"&gid={i}"
@@ -403,6 +404,4 @@ def convert_data_to_flat(
         resource.ingest_to_flat(
             df,
             os.path.join(folder_name, resource.__name__.lower()),
-            date_format,
-            timezone,
         )

@@ -30,10 +30,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
+dev = [
   "pytest",
   "pytest-cov",
-  "pytest-unordered"
+  "pytest-unordered",
+  "ruff"
 ]
 
 [project.urls]
@@ -44,3 +45,23 @@ line-length = 88
 
 [tool.pytest.ini_options]
 pythonpath = "."
+
+[tool.ruff]
+exclude = [".venv", ".vscode", ".git",  "docs", "tests", "__init__.py"]
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+extend-select = [
+    "E",        # pycodestyle errors
+    "W",        # pycodestyle warnings
+    "F",        # pyflakes
+    "I",        # isort
+    "C",        # flake8-comprehensions
+    "B",        # flake8-bugbear
+    "ARG",      # flake8-unused-arguments
+    "RUF",      # Ruff-specific
+    "YTT",      # flake8-2020
+]
+ignore = ["C901"]

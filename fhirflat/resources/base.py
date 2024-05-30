@@ -1,16 +1,16 @@
 # from pydantic import BaseModel
 from __future__ import annotations
-from fhir.resources.domainresource import DomainResource as _DomainResource
 
 import datetime
-import pandas as pd
+from typing import ClassVar, TypeAlias
+
 import numpy as np
 import orjson
+import pandas as pd
+from fhir.resources.domainresource import DomainResource as _DomainResource
 
 from fhirflat.fhir2flat import fhir2flat
 from fhirflat.flat2fhir import expand_concepts
-
-from typing import TypeAlias, ClassVar
 
 JsonString: TypeAlias = str
 
@@ -129,9 +129,7 @@ class FHIRFlatBase(_DomainResource):
         return condensed_mapped_data
 
     @classmethod
-    def ingest_to_flat(
-        cls, data: pd.DataFrame, filename: str, date_format: str, timezone: str
-    ):
+    def ingest_to_flat(cls, data: pd.DataFrame, filename: str):
         """
         Takes a pandas dataframe and populates the resource with the data.
         Creates a FHIRflat parquet file for the resources.

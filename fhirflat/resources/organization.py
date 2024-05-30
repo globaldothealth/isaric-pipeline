@@ -1,10 +1,13 @@
 from __future__ import annotations
-from fhir.resources.organization import Organization as _Organization
-from .base import FHIRFlatBase
+
+from typing import ClassVar, TypeAlias
+
 import orjson
+from fhir.resources.organization import Organization as _Organization
 
 from fhirflat.flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar
+
+from .base import FHIRFlatBase
 
 JsonString: TypeAlias = str
 
@@ -45,7 +48,7 @@ class Organization(_Organization, FHIRFlatBase):
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            if type(data[field]) is not list:
+            if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
         return cls(**data)

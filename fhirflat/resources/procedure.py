@@ -1,22 +1,22 @@
 from __future__ import annotations
-from fhir.resources.procedure import Procedure as _Procedure
-from .base import FHIRFlatBase
 
-from .extension_types import (
-    dateTimeExtensionType,
-    relativePeriodType,
-    durationType,
-    timingPhaseType,
-)
+from typing import ClassVar, TypeAlias, Union
 
-from .extensions import Duration, timingPhase, relativePeriod
-
-from pydantic.v1 import Field, validator
 import orjson
+from fhir.resources import fhirtypes
+from fhir.resources.procedure import Procedure as _Procedure
+from pydantic.v1 import Field, validator
 
 from fhirflat.flat2fhir import expand_concepts
-from typing import TypeAlias, ClassVar, Union
-from fhir.resources import fhirtypes
+
+from .base import FHIRFlatBase
+from .extension_types import (
+    dateTimeExtensionType,
+    durationType,
+    relativePeriodType,
+    timingPhaseType,
+)
+from .extensions import Duration, relativePeriod, timingPhase
 
 JsonString: TypeAlias = str
 
@@ -65,7 +65,7 @@ class Procedure(_Procedure, FHIRFlatBase):
     }
 
     # required attributes that are not present in the FHIRflat representation
-    flat_defaults: ClassVar[list[str]] = FHIRFlatBase.flat_defaults + ["status"]
+    flat_defaults: ClassVar[list[str]] = [*FHIRFlatBase.flat_defaults, "status"]
 
     @validator("extension")
     def validate_extension_contents(cls, extensions):
@@ -110,7 +110,7 @@ class Procedure(_Procedure, FHIRFlatBase):
 
         # create lists for properties which are lists of FHIR types
         for field in [x for x in data.keys() if x in cls.attr_lists()]:
-            if type(data[field]) is not list:
+            if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
         return cls(**data)
