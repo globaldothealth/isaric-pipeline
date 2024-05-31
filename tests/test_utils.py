@@ -1,6 +1,12 @@
 import pytest
 from pytest_unordered import unordered
-from fhirflat.util import group_keys, get_fhirtype
+import fhirflat
+from fhirflat.util import (
+    group_keys,
+    get_fhirtype,
+    get_local_extension_type,
+    get_local_resource,
+)
 from fhir.resources.quantity import Quantity
 from fhir.resources.codeableconcept import CodeableConcept
 from fhir.resources.medicationstatement import MedicationStatementAdherence
@@ -50,6 +56,25 @@ def test_get_fhirtype(input, expected):
     assert result == expected
 
 
+def test_get_fhirtype_import():
+    # if 'Extension' is imported from fhir.resources.extension in this file the test
+    # doesn't hit correct test point
+    result = get_fhirtype("Extension")
+    assert result.__module__ == "fhir.resources.extension"
+
+
 def test_get_fhirtype_raises():
     with pytest.raises(AttributeError):
         get_fhirtype("NotARealType")
+
+
+def test_get_local_extension_type_raises():
+    with pytest.raises(
+        AttributeError, match="Could not find NotARealType in fhirflat extensions"
+    ):
+        get_local_extension_type("NotARealType")
+
+
+def test_get_local_resource():
+    result = get_local_resource("Patient")
+    assert result == fhirflat.Patient
