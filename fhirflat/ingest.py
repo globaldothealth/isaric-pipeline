@@ -3,6 +3,7 @@ Stores the main functions for converting clinical data (initally from RedCap-ARC
 FHIRflat.
 """
 
+import argparse
 import os
 import warnings
 from datetime import datetime
@@ -313,9 +314,9 @@ def create_dictionary(
 
 def convert_data_to_flat(
     data: str,
-    folder_name: str,
     date_format: str,
     timezone: str,
+    folder_name: str = "fhirflat_output",
     mapping_files_types: tuple[dict, dict] | None = None,
     sheet_id: str | None = None,
     subject_id="subjid",
@@ -329,12 +330,12 @@ def convert_data_to_flat(
     ----------
     data: str
         The path to the raw clinical data file.
-    folder_name: str
-        The name of the folder to store the FHIRflat files.
     date_format: str
         The format of the dates in the data file. E.g. "%Y-%m-%d"
     timezone: str
         The timezone of the dates in the data file. E.g. "Europe/London"
+    folder_name: str
+        The name of the folder to store the FHIRflat files.
     mapping_files_types: tuple[dict, dict] | None
         A tuple containing two dictionaries, one with the mapping files for each
         resource type and one with the mapping type (either one-to-one or one-to-many)
@@ -370,7 +371,6 @@ def convert_data_to_flat(
         }
 
     for resource, map_file in mappings.items():
-
         t = types[resource.__name__]
         if t == "one-to-one":
             df = create_dictionary(
@@ -405,3 +405,48 @@ def convert_data_to_flat(
             df,
             os.path.join(folder_name, resource.__name__.lower()),
         )
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Convert data to FHIRflat parquet files",
+        prog="fhirflat transform",
+    )
+    parser.add_argument("data", help="Data to be transformed")
+    parser.add_argument(
+        "sheet_id", help="Alphanumeric ID of the Google Sheet containing the mappings"
+    )
+    parser.add_argument(
+        "date_format", help="Date format used within the data, e.g. '%Y-%m-%d'"
+    )
+    parser.add_argument(
+        "timezone", help="Timezone the data is in, e.g. 'Europe/London'"
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Name to use for output folder",
+        default="fhirflat_output",
+    )
+    parser.add_argument(
+        "-s",
+        "--subject_id",
+        help="Column header denoting the subject ID",
+        type=str,
+        default="subjid",
+    )
+
+    args = parser.parse_args()
+
+    convert_data_to_flat(
+        args.data,
+        args.date_format,
+        args.timezone,
+        folder_name=args.output,
+        sheet_id=args.sheet_id,
+        subject_id=args.subject_id,
+    )
+
+
+if __name__ == "__main__":
+    main()
