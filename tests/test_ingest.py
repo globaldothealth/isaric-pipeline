@@ -1,6 +1,7 @@
 from fhirflat.ingest import (
     create_dictionary,
     convert_data_to_flat,
+    find_field_value,
     format_dates,
 )
 from fhirflat.resources.encounter import Encounter
@@ -12,6 +13,119 @@ import shutil
 from decimal import Decimal
 import numpy as np
 import pytest
+
+FIELD_VAL_ROW_WIDE = pd.Series(
+    {
+        "dates_enrolment": "2021-04-02",
+        "dates_adm": 1,
+        "dates_admdate": "2021-04-01",
+        "dates_admtime": "18:00",
+        "outco_denguediag": 1,
+        "outco_denguediag_main": np.nan,
+        "outco_denguediag_class": 2,
+        "outco_secondiag_oth": "Malaria",
+        "outco_date": "2021-04-10",
+        "outco_outcome": "Discharged",
+    }
+)
+
+FIELD_VAL_ROW_LONG = pd.Series({"index": 0, "column": "vital_highesttem_c", "value": 2})
+
+FIELD_VAL_ROW_RAW = pd.DataFrame(
+    {
+        "subjid": 2,
+        "visitid": 11,
+        "dates_enrolment": "2021-04-02",
+        "dates_adm": 1,
+        "dates_admdate": "2021-04-01",
+        "dates_admtime": "18:00",
+        "outco_denguediag": 1,
+        "outco_denguediag_main": np.nan,
+        "outco_denguediag_class": 2,
+        "outco_secondiag_oth": np.nan,
+        "outco_date": "2021-04-10",
+        "outco_outcome": 1,
+    },
+    index=[0],
+)
+
+
+@pytest.mark.parametrize(
+    "response, fhir_attr, mapp, raw_data, expected",
+    [
+        ("2021-04-02", "", "<FIELD>", None, "2021-04-02"),  # col=dates_enrolment
+        (
+            "2021-04-01",
+            "",
+            "<FIELD>+<dates_admtime>",
+            None,
+            "2021-04-01 18:00",
+        ),  # col=dates_admdate
+        (
+            "2021-04-02",
+            "actualPeriod.start",
+            "<FIELD>+<dates_admtime",
+            None,
+            "2021-04-02T18:00:00+01:00",
+        ),  # col=dates_admdate
+        (
+            "2021-04-02",
+            "",
+            "<FIELD> if not <dates_admdate>",
+            None,
+            None,
+        ),  # col=dates_enrolment
+        ("Malaria", "", "<outco_secondiag_oth>", None, "Malaria"),
+        # (2, "id", "<subjid>", FIELD_VAL_ROW_RAW, 2),
+        (None, "", "vital-signs", None, "vital-signs"),
+    ],
+)
+def test_find_field_value(response, fhir_attr, mapp, raw_data, expected):
+    row = FIELD_VAL_ROW_WIDE
+    result = find_field_value(
+        row, response, fhir_attr, mapp, "%Y-%m-%d", "Europe/London", raw_data=raw_data
+    )
+    assert result == expected
+
+
+def test_fnd_field_value_long_data():
+    result = find_field_value(
+        FIELD_VAL_ROW_LONG,
+        None,
+        "value",
+        "<subjid>",
+        "%Y-%m-%d",
+        "Europe/London",
+        raw_data=FIELD_VAL_ROW_RAW,
+    )
+    assert result == 2
+
+
+@pytest.mark.parametrize(
+    "response, fhir_attr, mapp, raw_data, comment",
+    [
+        (
+            "Fish",
+            "",
+            "<outco_thirddiag_oth>",
+            None,
+            "not found in the filtered data",
+        ),
+        ("Fish", "", "<outco_thirddiag_oth>", FIELD_VAL_ROW_RAW, "not found in data"),
+    ],
+)
+def test_find_field_value_error(response, fhir_attr, mapp, raw_data, comment):
+    row = FIELD_VAL_ROW_WIDE
+    with pytest.raises(KeyError, match=comment):
+        find_field_value(
+            row,
+            response,
+            fhir_attr,
+            mapp,
+            "%Y-%m-%d",
+            "Europe/London",
+            raw_data=raw_data,
+        )
 
 
 @pytest.mark.parametrize(
