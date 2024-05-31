@@ -4,8 +4,9 @@ Convert FHIR resources as JSON files to FHIRflat CSV files.
 
 from __future__ import annotations
 
-import pandas as pd
 from typing import TYPE_CHECKING
+
+import pandas as pd
 
 if TYPE_CHECKING:
     from .resources.base import FHIRFlatBase
@@ -48,7 +49,7 @@ def explode_and_flatten(df: pd.DataFrame, list_cols: list[str]) -> pd.DataFrame:
     """
 
     list_lengths = [len(df[x][0]) for x in list_cols]
-    long_list_cols = [x for x, y in zip(list_cols, list_lengths) if y > 1]
+    long_list_cols = [x for x, y in zip(list_cols, list_lengths, strict=True) if y > 1]
 
     if long_list_cols:
         df.rename(columns={x: x + "_dense" for x in long_list_cols}, inplace=True)
@@ -230,13 +231,13 @@ def flattenExtensions(df: pd.DataFrame, extension: str) -> pd.DataFrame:
 
             try:
                 # The fixed index will probably cause issues
-                value = ext[[key for key in ext if key.startswith("value")][0]]
-            except IndexError:
-                raise IndexError("Extension does not contain a single value.")
+                value = ext[next(key for key in ext if key.startswith("value"))]
+            except IndexError as e:
+                raise IndexError("Extension does not contain a single value.") from e
 
             row[name] = value
 
-            if type(row[name]) is dict or issubclass(type(row[name]), dict):
+            if isinstance(row[name], dict) or issubclass(type(row[name]), dict):
                 row = flatten_column(row, name)
 
             return row

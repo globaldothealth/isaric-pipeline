@@ -1,13 +1,13 @@
 # Utility functions for FHIRflat
-from itertools import groupby
-import fhir.resources
-import re
 import importlib
+import re
 from collections.abc import KeysView
+from itertools import groupby
 
-from .resources import extensions
+import fhir.resources
 
 import fhirflat
+from fhirflat.resources import extensions
 
 
 def group_keys(data_keys: list[str] | KeysView) -> dict[str, list[str]]:
@@ -21,9 +21,7 @@ def group_keys(data_keys: list[str] | KeysView) -> dict[str, list[str]]:
     """
     grouped_keys = [k for k in data_keys if "." in k]
     grouped_keys.sort()
-    groups = {
-        k: [gs for gs in g] for k, g in groupby(grouped_keys, lambda x: x.split(".")[0])
-    }
+    groups = {k: list(g) for k, g in groupby(grouped_keys, lambda x: x.split(".")[0])}
     return groups
 
 
@@ -48,9 +46,9 @@ def get_fhirtype(t: str | list[str]):
                 try:
                     module = importlib.import_module(f"fhir.resources.{t.lower()}")
                     return getattr(module, t)
-                except ImportError or ModuleNotFoundError:
+                except (ImportError, ModuleNotFoundError) as e:
                     # Handle the case where the module does not exist.
-                    raise AttributeError(f"Could not find {t} in fhir.resources")
+                    raise AttributeError(f"Could not find {t} in fhir.resources") from e
 
     else:
         return get_local_extension_type(t)
@@ -66,8 +64,8 @@ def get_local_extension_type(t: str):
     except AttributeError:
         try:
             return getattr(extensions, t.capitalize())
-        except AttributeError:
-            raise AttributeError(f"Could not find {t} in fhirflat extensions")
+        except AttributeError as ae:
+            raise AttributeError(f"Could not find {t} in fhirflat extensions") from ae
 
 
 def get_local_resource(t: str):

@@ -1,19 +1,19 @@
 # Converts FHIRflat files into FHIR resources
-from .util import (
-    group_keys,
-    get_fhirtype,
-    get_local_extension_type,
-)
-from fhir.resources.quantity import Quantity
+from fhir.resources.backbonetype import BackboneType as _BackboneType
 from fhir.resources.codeableconcept import CodeableConcept
-from fhir.resources.period import Period
-from fhir.resources.fhirprimitiveextension import FHIRPrimitiveExtension
 from fhir.resources.datatype import DataType as _DataType
 from fhir.resources.domainresource import DomainResource as _DomainResource
-from fhir.resources.backbonetype import BackboneType as _BackboneType
-
-from pydantic.v1.error_wrappers import ValidationError
+from fhir.resources.fhirprimitiveextension import FHIRPrimitiveExtension
+from fhir.resources.period import Period
+from fhir.resources.quantity import Quantity
 from pydantic.v1 import BaseModel
+from pydantic.v1.error_wrappers import ValidationError
+
+from .util import (
+    get_fhirtype,
+    get_local_extension_type,
+    group_keys,
+)
 
 
 def create_codeable_concept(
@@ -35,7 +35,9 @@ def create_codeable_concept(
             ]
             codes = [
                 [s + "|" + c]
-                for s, c in zip(old_dict[name + ".system"], formatted_codes)
+                for s, c in zip(
+                    old_dict[name + ".system"], formatted_codes, strict=True
+                )
             ]
     else:
         # From FHIRflat file
@@ -67,9 +69,9 @@ def create_codeable_concept(
         new_dict = {"coding": [{"display": display}]}
     else:
         new_dict = {"coding": []}
-        for code, name in zip(codes, old_dict[name + ".text"]):
-            system, code = code.split("|")
-            display = name
+        for cd, nme in zip(codes, old_dict[name + ".text"], strict=True):
+            system, code = cd.split("|")
+            display = nme
 
             subdict = {"system": system, "code": code, "display": display}
 
@@ -184,7 +186,7 @@ def find_data_class(data_class: list[BaseModel] | BaseModel, k: str) -> BaseMode
 
     if isinstance(data_class, list):
         title_matches = [k.lower() == c.schema()["title"].lower() for c in data_class]
-        result = [x for x, y in zip(data_class, title_matches) if y]
+        result = [x for x, y in zip(data_class, title_matches, strict=True) if y]
         if len(result) == 1:
             return get_fhirtype(k)
         else:
@@ -223,7 +225,7 @@ def expand_concepts(data: dict[str, str], data_class: type[_DomainResource]) -> 
     for k, v in groups.items():
         keys_to_replace += v
         v_dict = {k: data[k] for k in v}
-        if any([s.count(".") > 1 for s in v]):
+        if any(s.count(".") > 1 for s in v):
             # strip the outside group name
             stripped_dict = {s.split(".", 1)[1]: v_dict[s] for s in v}
             # call recursively
@@ -258,7 +260,7 @@ def expand_concepts(data: dict[str, str], data_class: type[_DomainResource]) -> 
             continue
         elif data_class.schema()["properties"][k].get("type") == "array":
             if k == "extension":
-                expanded[k] = [v for v in expanded[k].values()]
+                expanded[k] = list(expanded[k].values())
             else:
                 expanded[k] = [expanded[k]]
 

@@ -27,7 +27,7 @@ jobs:
         python-version: "3.11"
     - name: Install dependencies
       run: |
-        python3 -m pip install '.[test]'
+        python3 -m pip install '.[dev]'
     - name: Test with pytest
       run: |
         python3 -m pytest --cov

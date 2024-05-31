@@ -37,14 +37,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 import importlib
 import typing
 from pathlib import Path
-from typing import Union, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Type, Union
 
+from fhir.resources.core.fhirabstractmodel import FHIRAbstractModel
 from pydantic.v1.class_validators import make_generic_validator
 from pydantic.v1.error_wrappers import ErrorWrapper, ValidationError
 from pydantic.v1.types import StrBytes
 from pydantic.v1.utils import ROOT_KEY
-
-from fhir.resources.core.fhirabstractmodel import FHIRAbstractModel
 
 if typing.TYPE_CHECKING:
     from pydantic.v1 import BaseModel
@@ -124,7 +123,7 @@ class Validators:
                             )
                         ],
                         model_class,
-                    )
+                    ) from exc
 
                 raise
 
@@ -141,17 +140,17 @@ class Validators:
                                     f"Provided file '{_p}' for class "
                                     "'{model_class.__name__}' "
                                     "as value, contains invalid json data. errors from "
-                                    f"decoder-> ''{str(exc)}''"
+                                    f"decoder-> ''{exc!s}''"
                                 ),
                                 loc=ROOT_KEY,
                             )
                         ],
                         model_class,
-                    )
+                    ) from exc
 
                 raise
 
-            except FileNotFoundError:
+            except FileNotFoundError as fe:
                 raise ValidationError(
                     [
                         ErrorWrapper(
@@ -163,7 +162,7 @@ class Validators:
                         )
                     ],
                     model_class,
-                )
+                ) from fe
 
         elif isinstance(v, dict):
             v = model_class.parse_obj(v)

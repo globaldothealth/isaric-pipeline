@@ -1,7 +1,8 @@
 from __future__ import annotations
-from fhir.resources.fhirtypes import AbstractType as _AbstractType
 
 from typing import TYPE_CHECKING
+
+from fhir.resources.fhirtypes import AbstractType as _AbstractType
 
 if TYPE_CHECKING:
     from pydantic.v1.typing import CallableGenerator

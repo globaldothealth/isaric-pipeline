@@ -166,9 +166,7 @@ def test_load_data_one_to_one_single_row():
     )
 
     assert df is not None
-    Encounter.ingest_to_flat(
-        df, "encounter_ingestion_single", "%Y-%m-%d", "Brazil/East"
-    )
+    Encounter.ingest_to_flat(df, "encounter_ingestion_single")
 
     assert_frame_equal(
         pd.read_parquet("encounter_ingestion_single.parquet"),
@@ -374,7 +372,7 @@ def test_load_data_one_to_one_multi_row():
     )
 
     assert df is not None
-    Encounter.ingest_to_flat(df, "encounter_ingestion_multi", "%Y-%m-%d", "Brazil/East")
+    Encounter.ingest_to_flat(df, "encounter_ingestion_multi")
 
     assert_frame_equal(
         pd.read_parquet("encounter_ingestion_multi.parquet"),
@@ -468,9 +466,7 @@ def test_load_data_one_to_many_multi_row():
     )
 
     assert df is not None
-    Observation.ingest_to_flat(
-        df.dropna(), "observation_ingestion", "%Y-%m-%d", "Brazil/East"
-    )
+    Observation.ingest_to_flat(df.dropna(), "observation_ingestion")
 
     full_df = pd.read_parquet("observation_ingestion.parquet")
 
