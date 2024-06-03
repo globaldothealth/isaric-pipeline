@@ -3,6 +3,7 @@ from pandas.testing import assert_frame_equal
 import os
 from fhirflat.resources.immunization import Immunization
 import datetime
+import pytest
 
 IMMUNIZATION_DICT_INPUT = {
     "resourceType": "Immunization",
@@ -216,3 +217,50 @@ def test_immunization_from_flat():
     flat_vacc = Immunization.from_flat("tests/data/immunization_flat.parquet")
 
     assert vacc == flat_vacc
+
+
+def test_immunization_extension_validation_error():
+    with pytest.raises(ValueError, match="timingPhase can only appear once."):
+        Immunization(
+            **{
+                "id": 2,
+                "status": "in-progress",
+                "extension": [
+                    {
+                        "url": "timingPhase",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": 278307001,
+                                    "display": "on admission",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "timingPhase",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": 278307005,
+                                    "display": "during admission",
+                                }
+                            ]
+                        },
+                    },
+                ],
+                "patient": {"reference": "Patient/example"},
+                "occurrenceDateTime": "2021-09-12T00:00:00",
+                "vaccineCode": {
+                    "coding": [
+                        {
+                            "system": "http://hl7.org/fhir/sid/cvx",
+                            "code": "175",
+                            "display": "Rabies - IM Diploid cell culture",
+                        }
+                    ],
+                },
+            }
+        )

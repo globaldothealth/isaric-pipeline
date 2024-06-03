@@ -36,6 +36,7 @@ ORG_DICT_INPUT = {
         }
     ],
     "name": "Artis University Medical Center (AUMC)",
+    "alias": ["AUMC"],
     "contact": [
         {
             "telecom": [{"system": "phone", "value": "+31715269111", "use": "work"}],
@@ -66,6 +67,7 @@ ORG_DICT_INPUT = {
             },
         },
     ],
+    "partOf": {"reference": "Organization/f001"},
 }
 
 ORG_FLAT = {
@@ -85,6 +87,8 @@ ORG_FLAT = {
         ]
     ],
     "name": "Artis University Medical Center (AUMC)",
+    "alias": "AUMC",
+    "partOf": "Organization/f001",
 }
 
 ORG_DICT_OUT = {
@@ -112,6 +116,8 @@ ORG_DICT_OUT = {
         }
     ],
     "name": "Artis University Medical Center (AUMC)",
+    "alias": ["AUMC"],
+    "partOf": {"reference": "Organization/f001"},
 }
 
 

@@ -3,6 +3,7 @@ from pandas.testing import assert_frame_equal
 import os
 from fhirflat.resources.encounter import Encounter
 import datetime
+import pytest
 
 ENCOUNTER_DICT_INPUT = {
     "resourceType": "Encounter",
@@ -376,3 +377,38 @@ def test_encounter_from_flat():
     flat_visit = Encounter.from_flat("tests/data/encounter_flat.parquet")
 
     assert visit == flat_visit
+
+
+def test_encounter_extension_validation_error():
+    with pytest.raises(ValueError, match="can only appear once"):
+        Encounter(
+            **{
+                "status": "active",
+                "extension": [
+                    {
+                        "url": "timingPhase",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": 278307001,
+                                    "display": "on admission",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "timingPhase",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": 278307001,
+                                    "display": "on admission",
+                                }
+                            ]
+                        },
+                    },
+                ],
+            }
+        )

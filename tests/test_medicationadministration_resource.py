@@ -22,6 +22,7 @@ MEDS_DICT_INPUT = {
             },
         }
     ],
+    "partOf": [{"reference": "Medication/med0305"}],
     "status": "completed",
     "medication": {"reference": {"reference": "#med0306"}},
     "subject": {"reference": "Patient/pat1", "display": "Donald Duck"},
@@ -85,6 +86,7 @@ MEDS_DICT_INPUT = {
 MEDS_FLAT = {
     "resourceType": "MedicationAdministration",
     "medication.reference": "#med0306",
+    "partOf": "Medication/med0305",
     "subject": "Patient/pat1",
     "encounter": "Encounter/f001",
     "occurencePeriod.start": datetime.datetime(
@@ -108,6 +110,7 @@ MEDS_DICT_OUT = {
     "resourceType": "MedicationAdministration",
     "status": "completed",
     "medication": {"reference": {"reference": "#med0306"}},
+    "partOf": [{"reference": "Medication/med0305"}],
     "subject": {"reference": "Patient/pat1"},
     "encounter": {"reference": "Encounter/f001"},
     "occurencePeriod": {
@@ -155,6 +158,7 @@ def test_medicationadministration_to_flat():
         pd.DataFrame(MEDS_FLAT, index=[0]),
         # Date types are off otherwise, pyarrow uses pytz and pandas uses dateutil
         check_dtype=False,
+        check_like=True,
     )
     os.remove("test_medicationadmin.parquet")
 

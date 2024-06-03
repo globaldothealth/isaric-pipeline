@@ -17,6 +17,7 @@ LOC_DICT_INPUT = {
             }
         ]
     },
+    "endpoint": [{"reference": "Endpoint/1"}],
 }
 
 LOC_FLAT = {
@@ -24,6 +25,7 @@ LOC_FLAT = {
     "name": "Washington, DC metro area",
     "form.code": "http://terminology.hl7.org/CodeSystem/location-physical-type|area",  # noqa: E501
     "form.text": "Area",
+    "endpoint": "Endpoint/1",
 }
 
 LOC_DICT_OUT = {
@@ -38,6 +40,7 @@ LOC_DICT_OUT = {
             }
         ]
     },
+    "endpoint": [{"reference": "Endpoint/1"}],
 }
 
 
@@ -47,7 +50,9 @@ def test_location_to_flat():
     bp.to_flat("test_location.parquet")
 
     assert_frame_equal(
-        pd.read_parquet("test_location.parquet"), pd.DataFrame(LOC_FLAT, index=[0])
+        pd.read_parquet("test_location.parquet"),
+        pd.DataFrame(LOC_FLAT, index=[0]),
+        check_like=True,
     )
     os.remove("test_location.parquet")
 

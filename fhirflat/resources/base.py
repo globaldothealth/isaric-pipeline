@@ -54,7 +54,9 @@ class FHIRFlatBase(_DomainResource):
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
         """
-        raise NotImplementedError("Subclasses must implement this method")
+        raise NotImplementedError(
+            "Subclasses must implement this method"
+        )  # pragma: no cover
 
     @classmethod
     def from_flat(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:

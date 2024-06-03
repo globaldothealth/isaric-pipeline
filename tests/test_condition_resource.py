@@ -3,6 +3,7 @@ from pandas.testing import assert_frame_equal
 import os
 import datetime
 from fhirflat.resources.condition import Condition
+import pytest
 
 CONDITION_DICT_INPUT = {
     "id": "c201",
@@ -221,3 +222,47 @@ def test_condition_from_flat():
     flat_fever = Condition.from_flat("tests/data/condition_flat.parquet")
 
     assert fever == flat_fever
+
+
+def test_condition_extension_validation_error():
+    with pytest.raises(ValueError, match="can only appear once"):
+        Condition(
+            **{
+                "id": "c201",
+                "extension": [
+                    {
+                        "url": "presenceAbsence",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "410605003",
+                                    "display": "Present",
+                                }
+                            ]
+                        },
+                    },
+                    {
+                        "url": "presenceAbsence",
+                        "valueCodeableConcept": {
+                            "coding": [
+                                {
+                                    "system": "http://snomed.info/sct",
+                                    "code": "410605003",
+                                    "display": "Present",
+                                }
+                            ]
+                        },
+                    },
+                ],
+                "subject": {"reference": "Patient/f201"},
+                "clinicalStatus": {
+                    "coding": [
+                        {
+                            "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",  # noqa: E501
+                            "code": "resolved",
+                        }
+                    ]
+                },
+            }
+        )

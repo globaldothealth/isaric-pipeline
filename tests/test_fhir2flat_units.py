@@ -4,20 +4,27 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "data, expected",
+    "data_col, expected",
     [
         (
-            pd.DataFrame({"column1": [{"key1": "value1", "key2": "value2"}]}),
+            (
+                pd.DataFrame({"column1": [{"key1": "value1", "key2": "value2"}]}),
+                "column1",
+            ),
             {"column1.key1": ["value1"], "column1.key2": ["value2"]},
-        )
+        ),
+        (
+            (pd.DataFrame({"alias": ["AUMC"]}), "alias"),
+            pd.DataFrame({"alias": ["AUMC"]}),
+        ),
     ],
 )
-def test_flatten_column(data, expected):
+def test_flatten_column(data_col, expected):
     # Create a mock DataFrame
-    # df = pd.DataFrame(data)
+    data, col_name = data_col
 
     # Call the function
-    result = f2f.flatten_column(data, "column1")
+    result = f2f.flatten_column(data, col_name)
 
     # Check the result
     expected = pd.DataFrame(expected)
