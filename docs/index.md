@@ -78,6 +78,7 @@ maxdepth: 1
 ----
 
 howto/conversion-fhir
+howto/conversion-data
 ```
 
 ```{toctree}
