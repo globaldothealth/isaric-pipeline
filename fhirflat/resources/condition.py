@@ -68,22 +68,6 @@ class Condition(_Condition, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def flat_descriptions(cls) -> dict[str, str]:
-        """
-        Descriptions of the fields in the FHIRflat representation
-        For use in LLM discussions & parser generation
-        """
-        descrip = {
-            field: cls.__fields__[field].field_info.description
-            for field in cls.flat_fields()
-        }
-
-        descrip["code"] = "Lists the condition, problem or diagnosis."
-        descrip["subject"] = "The patient's identification number."
-
-        return descrip
-
-    @classmethod
     def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Condition:
         """
         Load data into a dictionary-like structure, then

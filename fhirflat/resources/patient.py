@@ -58,21 +58,6 @@ class Patient(_Patient, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def flat_descriptions(cls) -> dict[str, str]:
-        "Descriptions of the fields in the FHIRflat representation"
-        descrip = {
-            field: cls.__fields__[field].field_info.description
-            for field in cls.flat_fields()
-        }
-
-        descrip["id"] = "The identifier or identification number for the patient."
-        descrip["gender"] = "The sex, sex at birth or gender of the patient."
-        descrip["deceasedBoolean"] = "Indicates if the patient has died."
-        descrip["deceasedDateTime"] = "Date of death if the patient has died."
-
-        return descrip
-
-    @classmethod
     def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Patient:
         """
         Load data into a dictionary-like structure, then
