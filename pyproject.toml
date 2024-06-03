@@ -46,6 +46,9 @@ docs = [
 [project.urls]
 Home = "https://github.com/globaldothealth/fhirflat"
 
+[project.scripts]
+  fhirflat = "fhirflat.__main__:main"
+
 [tool.black]
 line-length = 88
 
