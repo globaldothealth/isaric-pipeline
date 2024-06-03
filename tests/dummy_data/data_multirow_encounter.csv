@@ -1,0 +1,3 @@
+subjid,dates_enrolment,dates_adm,dates_admdate,dates_admtime,outco_denguediag,outco_denguediag_main,outco_denguediag_class,outco_not_dengue,outco_secondiag_oth,outco_date,outco_outcome
+1,2020-05-01,1,2021-04-01,,,,,cough,,,
+1,,,,18:00,1.0,,2.0,,,2021-04-10,1.0

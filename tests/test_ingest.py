@@ -3,6 +3,8 @@ from fhirflat.ingest import (
     convert_data_to_flat,
     find_field_value,
     format_dates,
+    create_dict_wide,
+    create_dict_long,
 )
 from fhirflat.resources.encounter import Encounter
 from fhirflat.resources.observation import Observation
@@ -17,15 +19,10 @@ import pytest
 FIELD_VAL_ROW_WIDE = pd.Series(
     {
         "dates_enrolment": "2021-04-02",
-        "dates_adm": 1,
         "dates_admdate": "2021-04-01",
         "dates_admtime": "18:00",
-        "outco_denguediag": 1,
-        "outco_denguediag_main": np.nan,
-        "outco_denguediag_class": 2,
         "outco_secondiag_oth": "Malaria",
-        "outco_date": "2021-04-10",
-        "outco_outcome": "Discharged",
+        "outco_outcome": 1,
     }
 )
 
@@ -88,7 +85,7 @@ def test_find_field_value(response, fhir_attr, mapp, raw_data, expected):
     assert result == expected
 
 
-def test_fnd_field_value_long_data():
+def test_find_field_value_long_data():
     result = find_field_value(
         FIELD_VAL_ROW_LONG,
         None,
@@ -152,6 +149,72 @@ def test_format_dates_error():
         format_dates("2021-04-01", "%m/%d/%Y", "Brazil/East")
 
 
+MAP_DF_MISSING_COLUMNS = pd.DataFrame(
+    {
+        "raw_variable": ["dates_enrolment", "outco_outcome"],
+        "raw_response": [np.nan, 2],
+        "actualPeriod.start": ["<FIELD>", np.nan],
+        "admission.dischargeDisposition.text": [np.nan, "Discharged"],
+    }
+)
+
+MAP_DF_MISSING_MAPPING = pd.DataFrame(
+    {
+        "raw_variable": [
+            "dates_enrolment",
+            "dates_admdate",
+            "dates_admtime",
+            "outco_secondiag_oth",
+            "outco_outcome",
+        ],
+        "raw_response": [np.nan, np.nan, np.nan, np.nan, 2],
+        "actualPeriod.start": ["<FIELD>", np.nan, np.nan, np.nan, np.nan],
+        "admission.dischargeDisposition.text": [
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            "Discharged",
+        ],
+    }
+)
+
+
+def test_create_dict_wide_errors():
+    map_df = MAP_DF_MISSING_COLUMNS.copy()
+    map_df.set_index(["raw_variable", "raw_response"], inplace=True)
+    with pytest.raises(ValueError, match="not found in mapping file"):
+        create_dict_wide(
+            FIELD_VAL_ROW_WIDE,
+            map_df,
+            "%Y-%m-%d",
+            "Brazil/East",
+        )
+
+    map_df = MAP_DF_MISSING_MAPPING
+    map_df.set_index(["raw_variable", "raw_response"], inplace=True)
+    with pytest.warns(UserWarning, match="No mapping for column"):
+        create_dict_wide(
+            FIELD_VAL_ROW_WIDE,
+            map_df,
+            "%Y-%m-%d",
+            "Brazil/East",
+        )
+
+
+def test_create_dict_long_errors():
+    map_df = MAP_DF_MISSING_COLUMNS.copy()
+    map_df.set_index(["raw_variable", "raw_response"], inplace=True)
+    with pytest.warns(UserWarning, match="No mapping for column"):
+        create_dict_long(
+            FIELD_VAL_ROW_LONG,
+            None,
+            map_df,
+            "%Y-%m-%d",
+            "Brazil/East",
+        )
+
+
 ENCOUNTER_DICT_OUT = {
     "id": 11,
     "subject": "Patient/2",
@@ -198,6 +261,82 @@ def test_create_dict_one_to_one_single_row():
     dict_out = df["flat_dict"][0]
 
     assert dict_out == ENCOUNTER_DICT_OUT
+
+
+def test_create_dict_missing_data_warning():
+
+    with pytest.warns(UserWarning, match="No data found for the Observation resource"):
+        create_dictionary(
+            "tests/dummy_data/encounter_dummy_data_single.csv",
+            "tests/dummy_data/observation_dummy_mapping.csv",
+            "Observation",
+            one_to_one=True,
+            date_format="%Y-%m-%d",
+            timezone="Brazil/East",
+        )
+
+
+def test_create_dict_one_to_one_multirow_condense():
+    """
+    Checks that if the raw data contains multiple rows of data per Patient/Encounter, if
+    a single FHIR attribute can be filled by more than one row an error is raised.
+    """
+
+    mapped_dict = {
+        "subject": "Patient/1",
+        "actualPeriod.start": "2021-04-01T18:00:00-03:00",
+        "actualPeriod.end": "2021-04-10",
+        "extension.timingPhase.system": "https://snomed.info/sct",
+        "extension.timingPhase.code": 278307001.0,
+        "extension.timingPhase.text": "On admission (qualifier value)",
+        "class.system": "https://snomed.info/sct",
+        "class.code": 32485007.0,
+        "class.text": "Hospital admission (procedure)",
+        "diagnosis.condition.concept.system": [
+            "https://snomed.info/sct",
+            "https://snomed.info/sct",
+        ],
+        "diagnosis.condition.concept.code": [38362002.0, 722863008.0],
+        "diagnosis.condition.concept.text": [
+            "Dengue (disorder)",
+            "Dengue with warning signs (disorder)",
+        ],
+        "diagnosis.use.system": ["https://snomed.info/sct", "https://snomed.info/sct"],
+        "diagnosis.use.code": [89100005.0, 89100005.0],
+        "diagnosis.use.text": [
+            "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
+            "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",
+        ],
+        "admission.dischargeDisposition.system": "https://snomed.info/sct",
+        "admission.dischargeDisposition.code": 371827001.0,
+        "admission.dischargeDisposition.text": "Patient discharged alive (finding)",
+    }
+
+    df = create_dictionary(
+        "tests/dummy_data/data_multirow_encounter.csv",
+        "tests/dummy_data/encounter_dummy_mapping.csv",
+        "Encounter",
+        one_to_one=True,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
+    )
+
+    assert df is not None
+    dict_out = df["flat_dict"][0]
+
+    assert dict_out == mapped_dict
+
+    with pytest.raises(ValueError, match="Multiple values found in one-to-one mapping"):
+        # input data has different admission dates for same patient/encounter on
+        # different rows
+        create_dictionary(
+            "tests/dummy_data/data_multirow_encounter_error.csv",
+            "tests/dummy_data/encounter_dummy_mapping.csv",
+            "Encounter",
+            one_to_one=True,
+            date_format="%Y-%m-%d",
+            timezone="Brazil/East",
+        )
 
 
 ENCOUNTER_SINGLE_ROW_FLAT = {
@@ -477,7 +616,7 @@ ENCOUNTER_SINGLE_ROW_MULTI = {
 
 def test_load_data_one_to_one_multi_row():
     df = create_dictionary(
-        "tests/dummy_data/encounter_dummy_data_multi.csv",
+        "tests/dummy_data/encounter_dummy_data_multi_patient.csv",
         "tests/dummy_data/encounter_dummy_mapping.csv",
         "Encounter",
         one_to_one=True,
@@ -595,6 +734,34 @@ def test_load_data_one_to_many_multi_row():
         check_like=True,
     )
     os.remove("observation_ingestion.parquet")
+
+
+def test_convert_data_to_flat_missing_mapping_error():
+    with pytest.raises(
+        TypeError, match="Either mapping_files_types or sheet_id must be provided"
+    ):
+        convert_data_to_flat(
+            "tests/dummy_data/combined_dummy_data.csv",
+            folder_name="tests/ingestion_output",
+            date_format="%Y-%m-%d",
+            timezone="Brazil/East",
+        )
+
+
+def test_convert_data_to_flat_wrong_mapping_type_error():
+    mappings = {
+        Encounter: "tests/dummy_data/encounter_dummy_mapping.csv",
+    }
+    resource_types = {"Encounter": "three-to-three"}
+
+    with pytest.raises(ValueError, match="Unknown mapping type three-to-three"):
+        convert_data_to_flat(
+            "tests/dummy_data/combined_dummy_data.csv",
+            folder_name="tests/ingestion_output",
+            date_format="%Y-%m-%d",
+            timezone="Brazil/East",
+            mapping_files_types=(mappings, resource_types),
+        )
 
 
 def test_convert_data_to_flat_local_mapping():
