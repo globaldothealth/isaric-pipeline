@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 if TYPE_CHECKING:
-    from .resources.base import FHIRFlatBase
+    from .resources.base import FHIRFlatBase  # pragma: no cover
 
 
 def flatten_column(
@@ -21,21 +21,26 @@ def flatten_column(
     """
 
     expanded_col: pd.DataFrame = pd.json_normalize(data[column_name])
-    expanded_col.columns = [
-        column_name + "." + str(col) for col in expanded_col.columns
-    ]
+    if not expanded_col.empty:
+        expanded_col.columns = [
+            column_name + "." + str(col) for col in expanded_col.columns
+        ]
 
-    if isinstance(data, pd.DataFrame):
-        i = data.columns.get_loc(column_name)
-        data = data.drop(column_name, axis=1)
-        new_data = pd.concat([data.iloc[:, :i], expanded_col, data.iloc[:, i:]], axis=1)
-        return new_data
-    elif isinstance(data, pd.Series):
-        data = data.drop(column_name)
-        new_data = pd.concat([data, expanded_col.iloc[0]], axis=0)
-        return new_data
+        if isinstance(data, pd.DataFrame):
+            i = data.columns.get_loc(column_name)
+            data = data.drop(column_name, axis=1)
+            new_data = pd.concat(
+                [data.iloc[:, :i], expanded_col, data.iloc[:, i:]], axis=1
+            )
+            return new_data
+        elif isinstance(data, pd.Series):
+            data = data.drop(column_name)
+            new_data = pd.concat([data, expanded_col.iloc[0]], axis=0)
+            return new_data
+        else:
+            raise TypeError("Input data must be a pandas DataFrame or Series.")
     else:
-        raise ValueError("Input data must be a pandas DataFrame or Series.")
+        return data
 
 
 def explode_and_flatten(df: pd.DataFrame, list_cols: list[str]) -> pd.DataFrame:

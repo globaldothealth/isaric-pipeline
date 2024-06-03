@@ -3,6 +3,7 @@ from pandas.testing import assert_frame_equal
 import os
 from fhirflat.resources.procedure import Procedure
 import datetime
+import pytest
 
 PROCEDURE_DICT_INPUT = {
     "resourceType": "Procedure",
@@ -162,3 +163,18 @@ def test_procedure_from_flat():
     flat_chemo = Procedure.from_flat("tests/data/procedure_flat.parquet")
 
     assert chemo == flat_chemo
+
+
+def test_procedure_extension_validation_error():
+    with pytest.raises(ValueError, match="can only appear once"):
+        Procedure(
+            **{
+                "id": 1,
+                "status": "completed",
+                "subject": {"reference": "Patient/example"},
+                "extension": [
+                    {"url": "duration", "valueQuantity": {"value": 1, "unit": "d"}},
+                    {"url": "duration", "valueQuantity": {"value": 2, "unit": "d"}},
+                ],
+            }
+        )

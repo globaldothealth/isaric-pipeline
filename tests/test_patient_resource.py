@@ -3,6 +3,7 @@ from pandas.testing import assert_frame_equal
 import os
 import datetime
 from fhirflat.resources.patient import Patient
+import pytest
 
 PATIENT_DICT_INPUT = {
     "id": "f001",
@@ -162,3 +163,18 @@ def test_patient_with_extensions_from_flat():
     flat_patient = Patient.from_flat("tests/data/patient_ext_flat.parquet")
 
     assert patient == flat_patient
+
+
+def test_patient_extension_validation_error():
+    with pytest.raises(ValueError, match="can only appear once"):
+        Patient(
+            **{
+                "id": "f001",
+                "active": True,
+                "extension": [
+                    {"url": "age", "valueQuantity": {"value": 25, "unit": "years"}},
+                    {"url": "age", "valueQuantity": {"value": 30, "unit": "years"}},
+                ],
+                "name": [{"text": "Minnie Mouse"}],
+            }
+        ),

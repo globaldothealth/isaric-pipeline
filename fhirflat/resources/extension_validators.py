@@ -46,7 +46,7 @@ from pydantic.v1.types import StrBytes
 from pydantic.v1.utils import ROOT_KEY
 
 if typing.TYPE_CHECKING:
-    from pydantic.v1 import BaseModel
+    from pydantic.v1 import BaseModel  # pragma: no cover
 
 # TODO: Make the validation error clearer when the error is that a
 # valueCodeableConcept is missing the outer "coding":[] list.
@@ -105,7 +105,9 @@ class Validators:
                 v = model_class.parse_raw(v)
             except ValidationError as exc:
                 if TYPE_CHECKING:
-                    model_class = typing.cast(Type[BaseModel], model_class)
+                    model_class = typing.cast(
+                        Type[BaseModel], model_class
+                    )  # pragma: no cover
                 errors = exc.errors()
                 if (
                     len(errors) == 1
