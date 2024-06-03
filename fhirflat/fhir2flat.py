@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 if TYPE_CHECKING:
-    from .resources.base import FHIRFlatBase
+    from .resources.base import FHIRFlatBase  # pragma: no cover
 
 
 def flatten_column(
@@ -35,7 +35,7 @@ def flatten_column(
         new_data = pd.concat([data, expanded_col.iloc[0]], axis=0)
         return new_data
     else:
-        raise ValueError("Input data must be a pandas DataFrame or Series.")
+        raise TypeError("Input data must be a pandas DataFrame or Series.")
 
 
 def explode_and_flatten(df: pd.DataFrame, list_cols: list[str]) -> pd.DataFrame:
