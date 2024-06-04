@@ -4,8 +4,8 @@ FHIRflat.
 """
 
 import argparse
-import timeit
 import os
+import timeit
 import warnings
 from datetime import datetime
 from math import isnan
@@ -411,7 +411,8 @@ def convert_data_to_flat(
         end_time = timeit.default_timer()
         total_time = end_time - start_time
         print(
-            f"{resource.__name__} took {total_time:.2f} seconds to convert {len(df)} rows."
+            f"{resource.__name__} took {total_time:.2f} seconds to convert"
+            f" {len(df)} rows."
         )
 
 
