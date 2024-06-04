@@ -4,6 +4,7 @@ FHIRflat.
 """
 
 import argparse
+import timeit
 import os
 import warnings
 from datetime import datetime
@@ -79,7 +80,7 @@ def find_field_value(
     return return_val
 
 
-def format_dates(date_str: str, date_format: str, timezone: str) -> dict:
+def format_dates(date_str: str, date_format: str, timezone: str) -> str:
     """
     Converts dates into ISO8601 format with timezone information.
     """
@@ -208,6 +209,7 @@ def create_dict_long(
                 stacklevel=2,
             )
             return None
+    return None
 
 
 def create_dictionary(
@@ -371,6 +373,7 @@ def convert_data_to_flat(
         }
 
     for resource, map_file in mappings.items():
+        start_time = timeit.default_timer()
         t = types[resource.__name__]
         if t == "one-to-one":
             df = create_dictionary(
@@ -404,6 +407,11 @@ def convert_data_to_flat(
         resource.ingest_to_flat(
             df,
             os.path.join(folder_name, resource.__name__.lower()),
+        )
+        end_time = timeit.default_timer()
+        total_time = end_time - start_time
+        print(
+            f"{resource.__name__} took {total_time:.2f} seconds to convert {len(df)} rows."
         )
 
 
