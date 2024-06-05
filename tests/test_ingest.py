@@ -264,7 +264,6 @@ def test_create_dict_one_to_one_single_row():
 
 
 def test_create_dict_missing_data_warning():
-
     with pytest.warns(UserWarning, match="No data found for the Observation resource"):
         create_dictionary(
             "tests/dummy_data/encounter_dummy_data_single.csv",
@@ -337,6 +336,104 @@ def test_create_dict_one_to_one_multirow_condense():
             date_format="%Y-%m-%d",
             timezone="Brazil/East",
         )
+
+
+@pytest.mark.parametrize(
+    ("file, expected"),
+    [
+        (
+            "tests/dummy_data/data_multirow_encounter_freetext_maindiag.csv",
+            {
+                "diagnosis.condition.concept.code": [None, 722863008.0],
+                "diagnosis.condition.concept.system": [None, "https://snomed.info/sct"],
+                "diagnosis.condition.concept.text": [
+                    "sepsis",
+                    "Dengue with warning signs (disorder)",
+                ],
+                "diagnosis.use.system": [
+                    "https://snomed.info/sct",
+                    "https://snomed.info/sct",
+                ],
+                "diagnosis.use.code": [89100005.0, 89100005.0],
+                "diagnosis.use.text": [
+                    "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                    "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                ],
+            },
+        ),
+        (
+            "tests/dummy_data/data_multirow_encounter_freetext.csv",
+            {
+                "diagnosis.condition.concept.code": [38362002.0, 20927009.0, None],
+                "diagnosis.condition.concept.system": [
+                    "https://snomed.info/sct",
+                    "https://snomed.info/sct",
+                    None,
+                ],
+                "diagnosis.condition.concept.text": [
+                    "Dengue (disorder)",
+                    "Dengue hemorrhagic fever (disorder)",
+                    "RTI",
+                ],
+                "diagnosis.use.system": [
+                    "https://snomed.info/sct",
+                    "https://snomed.info/sct",
+                    "https://snomed.info/sct",
+                ],
+                "diagnosis.use.code": [89100005.0, 89100005.0, 85097005.0],
+                "diagnosis.use.text": [
+                    "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                    "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                    "Secondary diagnosis (contextual qualifier) (qualifier value)",  # noqa: E501
+                ],
+            },
+        ),
+        (
+            "tests/dummy_data/data_multirow_encounter_freetext_secdiag.csv",
+            {
+                "diagnosis.condition.concept.system": ["https://snomed.info/sct", None],
+                "diagnosis.condition.concept.code": [261665006.0, None],
+                "diagnosis.condition.concept.text": [
+                    "Unknown (qualifier value)",
+                    "secondary Dengue",
+                ],
+                "diagnosis.use.system": [
+                    "https://snomed.info/sct",
+                    "https://snomed.info/sct",
+                ],
+                "diagnosis.use.code": [89100005.0, 85097005.0],
+                "diagnosis.use.text": [
+                    "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                    "Secondary diagnosis (contextual qualifier) (qualifier value)",
+                ],
+            },
+        ),
+    ],
+)
+def test_create_dict_one_to_one_dense_freetext(file, expected):
+    df = create_dictionary(
+        file,
+        "tests/dummy_data/encounter_dummy_mapping.csv",
+        "Encounter",
+        one_to_one=True,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
+    )
+
+    assert df is not None
+    dict_out = df["flat_dict"][0]
+
+    diagnosis_cols = [
+        "diagnosis.condition.concept.system",
+        "diagnosis.condition.concept.code",
+        "diagnosis.condition.concept.text",
+        "diagnosis.use.system",
+        "diagnosis.use.code",
+        "diagnosis.use.text",
+    ]
+
+    # only interested in the diagnosis (backbone element) columns
+    assert {k: dict_out[k] for k in diagnosis_cols} == expected
 
 
 ENCOUNTER_SINGLE_ROW_FLAT = {
@@ -427,6 +524,69 @@ def test_load_data_one_to_one_single_row():
         check_dtype=False,
     )
     os.remove("encounter_ingestion_single.parquet")
+
+
+def test_load_data_one_to_one_dense_single_row():
+    df = create_dictionary(
+        "tests/dummy_data/data_multirow_encounter_freetext_maindiag.csv",
+        "tests/dummy_data/encounter_dummy_mapping.csv",
+        "Encounter",
+        one_to_one=True,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
+    )
+
+    assert df is not None
+    Encounter.ingest_to_flat(df, "encounter_ingestion_dense")
+
+    df_parquet = pd.read_parquet("encounter_ingestion_dense.parquet")
+
+    expected_diagnosis = [
+        {
+            "condition": [{"concept": {"coding": None, "text": "sepsis"}}],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "code": "89100005",
+                            "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                            "system": "https://snomed.info/sct",
+                        }
+                    ]
+                }
+            ],
+        },
+        {
+            "condition": [
+                {
+                    "concept": {
+                        "coding": [
+                            {
+                                "code": "722863008",
+                                "display": "Dengue with warning signs (disorder)",
+                                "system": "https://snomed.info/sct",
+                            }
+                        ],
+                        "text": None,
+                    }
+                }
+            ],
+            "use": [
+                {
+                    "coding": [
+                        {
+                            "code": "89100005",
+                            "display": "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                            "system": "https://snomed.info/sct",
+                        }
+                    ]
+                }
+            ],
+        },
+    ]
+
+    assert all(df_parquet["diagnosis_dense"][0] == expected_diagnosis)
+    os.remove("encounter_ingestion_dense.parquet")
 
 
 ENCOUNTER_SINGLE_ROW_MULTI = {

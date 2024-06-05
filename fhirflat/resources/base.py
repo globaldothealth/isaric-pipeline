@@ -115,7 +115,12 @@ class FHIRFlatBase(_DomainResource):
                         continue
                     else:
                         backbone_list = []
-                        for i in range(len(next(iter(condensed_dict.values())))):
+                        # assert all lists are the same length - if not different parts
+                        # of the backbone element may be incorrectly grouped together
+                        assert len(set(map(len, condensed_dict.values()))) == 1
+
+                        # iterate through and split the element into individual levels
+                        for i in range(max(len(x) for x in condensed_dict.values())):
                             first_item = {
                                 k.lstrip(b_e + "."): v[i]
                                 for k, v in condensed_dict.items()
@@ -271,6 +276,7 @@ class FHIRFlatBase(_DomainResource):
 
         if filename:
             flat_df.to_parquet(filename)
+            return None
         else:
             assert flat_df.shape[0] == 1
             return flat_df.loc[0]

@@ -9,7 +9,7 @@ dates_admdate,,,,,,,,,,<FIELD>+<dates_admtime>,,,,,,,,,,
 dates_admtime,,,,,,,,,,<dates_admdate>+<FIELD>,,,,,,,,,,
 outco_denguediag,"1, Yes",,,,,,,,,,,https://snomed.info/sct,38362002,Dengue (disorder),https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
 ,"0, No",,,,,,,,,,,,,,,,,,,
-,"99, Unknown",,,,,,,,,,,https://snomed.info/sct,261665006,Unknown (qualifier value),,,,,,
+,"99, Unknown",,,,,,,,,,,https://snomed.info/sct,261665006,Unknown (qualifier value),https://snomed.info/sct,89100005,Final diagnosis (discharge) (contextual qualifier) (qualifier value),,,
 outco_date,,,,,,,,,,,<FIELD>,,,,,,,,,
 outco_outcome,"1, Discharged alive",,,,,,,,,,,,,,,,,https://snomed.info/sct,371827001,Patient discharged alive (finding)
 ,"2, Still hospitalised",,,,,,,,,,,,,,,,,https://snomed.info/sct,32485007,Hospital admission (procedure)
