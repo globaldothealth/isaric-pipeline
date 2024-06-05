@@ -426,7 +426,7 @@ def main():
         "sheet_id", help="Alphanumeric ID of the Google Sheet containing the mappings"
     )
     parser.add_argument(
-        "date_format", help="Date format used within the data, e.g. '%Y-%m-%d'"
+        "date_format", help="Date format used within the data, e.g. '%%Y-%%m-%%d'"
     )
     parser.add_argument(
         "timezone", help="Timezone the data is in, e.g. 'Europe/London'"
