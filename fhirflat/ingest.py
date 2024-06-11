@@ -15,7 +15,7 @@ import dateutil.parser
 import numpy as np
 import pandas as pd
 
-from fhirflat.util import get_local_resource
+from fhirflat.util import get_local_resource, group_keys
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
 # 1:M (single row, multiple resources) mapping: Observation, Condition, Procedure, ...
@@ -165,6 +165,38 @@ def create_dict_wide(
                         result[key].append(snippet[key])
                     else:
                         result[key] = [result[key], snippet[key]]
+
+                # Keys that were not previously in the result still need to be added
+                remaining_keys = set(snippet.keys()) ^ duplicate_keys
+                if remaining_keys:
+                    key_length = max(len(result[k]) for k in duplicate_keys)
+                    empty_list = [None] * (key_length - 1)
+                    for key in remaining_keys:
+                        result[key] = [*empty_list, snippet[key]]
+
+                # Check for existing keys that might need to be extended
+                snippet_keys = list(snippet.keys())
+                result_groups = group_keys(result.keys())
+                for k_list in result_groups.values():
+                    if set(snippet_keys).issubset(set(k_list)):
+                        relevant_result = {
+                            k: (
+                                [result[k]]
+                                if not isinstance(result[k], list)
+                                else result[k]
+                            )
+                            for k in k_list
+                        }
+                        all_vals_same_length = (
+                            len(set(map(len, relevant_result.values()))) == 1
+                        )
+                        if not all_vals_same_length:
+                            target_length = max(map(len, relevant_result.values()))
+                            for k, v in relevant_result.items():
+                                if len(v) < target_length:
+                                    result[k] = relevant_result[k] + [None] * (
+                                        target_length - len(v)
+                                    )
     return result
 
 

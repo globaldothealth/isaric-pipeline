@@ -17,24 +17,27 @@ from .util import (
 
 
 def create_codeable_concept(
-    old_dict: dict[str, list[str] | str | float], name: str
+    old_dict: dict[str, list[str] | str | float | None], name: str
 ) -> dict[str, list[str]]:
     """Re-creates a codeableConcept structure from the FHIRflat representation."""
 
     # for reading in from ingestion pipeline
     if name + ".code" in old_dict and name + ".system" in old_dict:
-        raw_codes: str | float | list[str] = old_dict.get(name + ".code")
-        if not isinstance(raw_codes, list):
+        raw_codes: str | float | list[str | None] = old_dict.get(name + ".code")
+        if raw_codes is not None and not isinstance(raw_codes, list):
             formatted_code = (
                 raw_codes if isinstance(raw_codes, str) else str(int(raw_codes))
             )
             codes = [old_dict[name + ".system"] + "|" + formatted_code]
+        elif raw_codes is None:
+            codes = raw_codes
         else:
             formatted_codes = [
-                c if isinstance(c, str) else str(int(c)) for c in raw_codes
+                c if (isinstance(c, str) or c is None) else str(int(c))
+                for c in raw_codes
             ]
             codes = [
-                [s + "|" + c]
+                s + "|" + c
                 for s, c in zip(
                     old_dict[name + ".system"], formatted_codes, strict=True
                 )
@@ -217,7 +220,6 @@ def expand_concepts(data: dict[str, str], data_class: type[_DomainResource]) -> 
     group_classes = {}
 
     for k in groups.keys():
-
         group_classes[k] = find_data_class(data_class, k)
 
     expanded = {}

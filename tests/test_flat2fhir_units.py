@@ -79,6 +79,61 @@ def test_create_codeable_concept(data_groups, expected):
 
 
 @pytest.mark.parametrize(
+    "data_groups, expected",
+    [
+        (
+            (
+                {
+                    "code.code": ["1234"],
+                    "code.system": ["http://loinc.org"],
+                    "code.text": ["Test"],
+                },
+                "code",
+            ),
+            {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "1234",
+                        "display": "Test",
+                    }
+                ]
+            },
+        ),
+        (
+            (
+                {
+                    "code.code": ["1234", "5678"],
+                    "code.system": ["http://loinc.org", "http://snomed.info/sct"],
+                    "code.text": ["Test", "Snomed Test"],
+                },
+                "code",
+            ),
+            {
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "1234",
+                        "display": "Test",
+                    },
+                    {
+                        "system": "http://snomed.info/sct",
+                        "code": "5678",
+                        "display": "Snomed Test",
+                    },
+                ]
+            },
+        ),
+    ],
+)
+def test_create_codeable_concept_ingestion(data_groups, expected):
+    data, groups = data_groups
+    result = f2f.create_codeable_concept(data, groups)
+
+    assert result == expected
+
+
+@pytest.mark.parametrize(
     "data_class, expected",
     [
         (
