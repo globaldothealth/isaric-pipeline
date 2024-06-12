@@ -12,7 +12,7 @@ from fhir.resources.encounter import (
     EncounterParticipant,
     EncounterReason,
 )
-from pydantic.v1 import Field, validator
+from pydantic.v1 import Field, ValidationError, validator
 
 from fhirflat.flat2fhir import expand_concepts
 
@@ -24,7 +24,6 @@ JsonString: TypeAlias = str
 
 
 class Encounter(_Encounter, FHIRFlatBase):
-
     extension: list[
         Union[relativePeriodType, timingPhaseType, fhirtypes.ExtensionType]
     ] = Field(
@@ -109,4 +108,7 @@ class Encounter(_Encounter, FHIRFlatBase):
             if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
-        return cls(**data)
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e

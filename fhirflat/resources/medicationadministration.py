@@ -6,6 +6,7 @@ import orjson
 from fhir.resources.medicationadministration import (
     MedicationAdministration as _MedicationAdministration,
 )
+from pydantic.v1 import ValidationError
 
 from fhirflat.flat2fhir import expand_concepts
 
@@ -15,7 +16,6 @@ JsonString: TypeAlias = str
 
 
 class MedicationAdministration(_MedicationAdministration, FHIRFlatBase):
-
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
@@ -66,4 +66,7 @@ class MedicationAdministration(_MedicationAdministration, FHIRFlatBase):
             if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
-        return cls(**data)
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e

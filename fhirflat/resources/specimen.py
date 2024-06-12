@@ -4,6 +4,7 @@ from typing import ClassVar, TypeAlias
 
 import orjson
 from fhir.resources.specimen import Specimen as _Specimen
+from pydantic.v1 import ValidationError
 
 from fhirflat.flat2fhir import expand_concepts
 
@@ -13,7 +14,6 @@ JsonString: TypeAlias = str
 
 
 class Specimen(_Specimen, FHIRFlatBase):
-
     # attributes to exclude from the flat representation
     flat_exclusions: ClassVar[set[str]] = FHIRFlatBase.flat_exclusions | {
         "id",
@@ -56,4 +56,7 @@ class Specimen(_Specimen, FHIRFlatBase):
             if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
-        return cls(**data)
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e

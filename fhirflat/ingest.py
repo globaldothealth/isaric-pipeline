@@ -436,15 +436,27 @@ def convert_data_to_flat(
         else:
             raise ValueError(f"Unknown mapping type {t}")
 
-        resource.ingest_to_flat(
+        errors = resource.ingest_to_flat(
             df,
             os.path.join(folder_name, resource.__name__.lower()),
         )
+
+        if errors:
+            errors.to_csv(
+                os.path.join(folder_name, f"{resource.__name__.lower()}_errors.csv"),
+                index=False,
+            )
+            error_length = len(errors)
+        else:
+            error_length = 0
+
         end_time = timeit.default_timer()
         total_time = end_time - start_time
         print(
             f"{resource.__name__} took {total_time:.2f} seconds to convert"
-            f" {len(df)} rows."
+            f" {len(df)} rows. "
+            f"{error_length} resources not created due to validation errors."
+            f"Errors saved to {resource.__name__.lower()}_errors.csv"
         )
 
 

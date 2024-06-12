@@ -6,7 +6,7 @@ import orjson
 from fhir.resources import fhirtypes
 from fhir.resources.observation import Observation as _Observation
 from fhir.resources.observation import ObservationComponent as _ObservationComponent
-from pydantic.v1 import Field, validator
+from pydantic.v1 import Field, ValidationError, validator
 
 from fhirflat.flat2fhir import expand_concepts
 
@@ -30,7 +30,6 @@ class ObservationComponent(_ObservationComponent):
 
 
 class Observation(_Observation, FHIRFlatBase):
-
     extension: list[Union[timingPhaseType, fhirtypes.ExtensionType]] = Field(
         None,
         alias="extension",
@@ -125,4 +124,7 @@ class Observation(_Observation, FHIRFlatBase):
             if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
-        return cls(**data)
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e

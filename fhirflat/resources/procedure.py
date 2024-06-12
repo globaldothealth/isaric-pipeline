@@ -5,7 +5,7 @@ from typing import ClassVar, TypeAlias, Union
 import orjson
 from fhir.resources import fhirtypes
 from fhir.resources.procedure import Procedure as _Procedure
-from pydantic.v1 import Field, validator
+from pydantic.v1 import Field, ValidationError, validator
 
 from fhirflat.flat2fhir import expand_concepts
 
@@ -22,7 +22,6 @@ JsonString: TypeAlias = str
 
 
 class Procedure(_Procedure, FHIRFlatBase):
-
     extension: list[
         Union[
             durationType, timingPhaseType, relativePeriodType, fhirtypes.ExtensionType
@@ -113,4 +112,7 @@ class Procedure(_Procedure, FHIRFlatBase):
             if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
-        return cls(**data)
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e

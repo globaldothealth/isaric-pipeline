@@ -5,7 +5,7 @@ from typing import ClassVar, TypeAlias, Union
 import orjson
 from fhir.resources import fhirtypes
 from fhir.resources.patient import Patient as _Patient
-from pydantic.v1 import Field, validator
+from pydantic.v1 import Field, ValidationError, validator
 
 from fhirflat.flat2fhir import expand_concepts
 
@@ -17,20 +17,20 @@ JsonString: TypeAlias = str
 
 
 class Patient(_Patient, FHIRFlatBase):
-    extension: list[Union[ageType, birthSexType, raceType, fhirtypes.ExtensionType]] = (
-        Field(
-            None,
-            alias="extension",
-            title="Additional content defined by implementations",
-            description=(
-                """
+    extension: list[
+        Union[ageType, birthSexType, raceType, fhirtypes.ExtensionType]
+    ] = Field(
+        None,
+        alias="extension",
+        title="Additional content defined by implementations",
+        description=(
+            """
             Contains the G.H 'age' and 'birthSex' extensions,
             and allows extensions from other implementations to be included."""
-            ),
-            # if property is element of this resource.
-            element_property=True,
-            union_mode="smart",
-        )
+        ),
+        # if property is element of this resource.
+        element_property=True,
+        union_mode="smart",
     )
 
     # attributes to exclude from the flat representation
@@ -82,4 +82,7 @@ class Patient(_Patient, FHIRFlatBase):
             if not isinstance(data[field], list):
                 data[field] = [data[field]]
 
-        return cls(**data)
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e

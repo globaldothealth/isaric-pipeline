@@ -962,3 +962,54 @@ def test_convert_data_to_flat_local_mapping():
     )
 
     shutil.rmtree(output_folder)
+
+
+def test_ingest_to_flat_validation_errors():
+    df = pd.DataFrame(
+        {
+            "subjid": [2],
+            "flat_dict": [
+                {
+                    "subject": "Patient/2",
+                    "id": 11,
+                    "actualPeriod.start": "NOT A DATE",
+                    "actualPeriod.end": "2021-04-10",
+                    "extension.timingPhase.system": "https://snomed.info/sct",
+                    "extension.timingPhase.code": 278307001.0,
+                    "extension.timingPhase.text": "On admission (qualifier value)",
+                    "class.system": "https://snomed.info/sct",
+                    "class.code": 32485007.0,
+                    "class.text": "Hospital admission (procedure)",
+                    "diagnosis.condition.concept.system": [
+                        "https://snomed.info/sct",
+                        "https://snomed.info/sct",
+                    ],
+                    "diagnosis.condition.concept.code": [38362002.0, 722863008.0],
+                    "diagnosis.condition.concept.text": [
+                        "Dengue (disorder)",
+                        "Dengue with warning signs (disorder)",
+                    ],
+                    "diagnosis.use.system": [
+                        "https://snomed.info/sct",
+                        "https://snomed.info/sct",
+                    ],
+                    "diagnosis.use.code": [89100005.0, 89100005.0],
+                    "diagnosis.use.text": [
+                        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                        "Final diagnosis (discharge) (contextual qualifier) (qualifier value)",  # noqa: E501
+                    ],
+                    "admission.dischargeDisposition.system": "https://snomed.info/sct",
+                    "admission.dischargeDisposition.code": 371827001.0,
+                    "admission.dischargeDisposition.text": "Patient discharged alive (finding)",  # noqa: E501
+                }
+            ],
+        },
+        index=[0],
+    )
+
+    error_df = Encounter.ingest_to_flat(df, "encounter_date_error")
+    assert len(error_df) == 1
+    assert (
+        repr(error_df["fhir"][0].errors())
+        == "[{'loc': ('actualPeriod', 'start'), 'msg': 'invalid datetime format', 'type': 'value_error.datetime'}]"  # noqa: E501
+    )
