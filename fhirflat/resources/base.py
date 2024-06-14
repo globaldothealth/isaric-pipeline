@@ -50,17 +50,42 @@ class FHIRFlatBase(_DomainResource):
         return [x for x in cls.elements_sequence() if x not in cls.flat_exclusions]
 
     @classmethod
-    def cleanup(
-        cls, data: JsonString | dict, json_data=True
+    def cleanup(cls, data: dict) -> dict:
+        """
+        Apply resource-specific changes to references and default values
+        """
+        raise NotImplementedError(
+            "Subclasses must implement this method"
+        )  # pragma: no cover
+
+    @classmethod
+    def create_fhir_resource(
+        cls, data_dict: JsonString | dict, json_data=True
     ) -> FHIRFlatBase | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
         like codeableConcepts back into structured data.
+        Creates a FHIR resource from the data.
         """
-        raise NotImplementedError(
-            "Subclasses must implement this method"
-        )  # pragma: no cover
+        if json_data and isinstance(data_dict, str):
+            data: dict = orjson.loads(data_dict)
+        elif isinstance(data_dict, dict):
+            data: dict = data_dict
+
+        data = cls.cleanup(data)
+
+        data = expand_concepts(data, cls)
+
+        # create lists for properties which are lists of FHIR types
+        for field in [x for x in data.keys() if x in cls.attr_lists()]:
+            if not isinstance(data[field], list):
+                data[field] = [data[field]]
+
+        try:
+            return cls(**data)
+        except ValidationError as e:
+            return e
 
     @classmethod
     def from_flat(cls, file: str) -> FHIRFlatBase | list[FHIRFlatBase]:
@@ -81,7 +106,7 @@ class FHIRFlatBase(_DomainResource):
 
         df["fhir"] = df.apply(
             lambda row: row.to_json(date_format="iso", date_unit="s"), axis=1
-        ).apply(lambda x: cls.cleanup(x))
+        ).apply(lambda x: cls.create_fhir_resource(x))
 
         if len(df) == 1:
             resource = df["fhir"].iloc[0]
@@ -186,7 +211,7 @@ class FHIRFlatBase(_DomainResource):
 
         # Creates a columns of FHIR resource instances
         data["fhir"] = data["flat_dict"].apply(
-            lambda x: cls.cleanup(x, json_data=False)
+            lambda x: cls.create_fhir_resource(x, json_data=False)
         )
 
         data["validation_error"] = data["fhir"].apply(
