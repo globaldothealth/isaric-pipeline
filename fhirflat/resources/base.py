@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime
+import warnings
 from typing import ClassVar, TypeAlias
 
 import numpy as np
@@ -80,12 +81,35 @@ class FHIRFlatBase(_DomainResource):
             lambda row: row.to_json(date_format="iso", date_unit="s"), axis=1
         ).apply(lambda x: cls.cleanup(x))
 
-        # deal with errors here
-
         if len(df) == 1:
-            return df["fhir"].iloc[0]
+            resource = df["fhir"].iloc[0]
+            if isinstance(resource, ValidationError):
+                raise resource
+            else:
+                return resource
         else:
-            return list(df["fhir"])
+            resources = list(df["fhir"])
+            if any(isinstance(r, ValidationError) for r in resources):
+                df["validation_error"] = df["fhir"].apply(
+                    lambda x: isinstance(x, ValidationError)
+                )
+
+                errors = df[df["validation_error"]].drop("validation_error", axis=1)
+                errors.rename(columns={"fhir": "validation_error"}, inplace=True)
+                errors.to_csv(f"{cls.__name__.lower()}_errors.csv", index=False)
+
+                valid_fhir = df[~df["validation_error"]].drop(
+                    "validation_error", axis=1
+                )
+                resources = list(valid_fhir["fhir"])
+
+                warnings.warn(
+                    "Validation errors found in the data."
+                    "Only valid resources have been returned."
+                    f"Errors saved to {cls.__name__.lower()}_errors.csv",
+                    stacklevel=2,
+                )
+            return resources
 
     @classmethod
     def ingest_backbone_elements(cls, mapped_data: pd.Series) -> pd.Series:

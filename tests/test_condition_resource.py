@@ -4,6 +4,7 @@ import os
 import datetime
 from fhirflat.resources.condition import Condition
 import pytest
+from pydantic.v1 import ValidationError
 
 CONDITION_DICT_INPUT = {
     "id": "c201",
@@ -266,3 +267,8 @@ def test_condition_extension_validation_error():
                 },
             }
         )
+
+
+def test_from_flat_validation_error_single():
+    with pytest.raises(ValidationError, match="1 validation error for Condition"):
+        Condition.from_flat("tests/data/condition_flat_missing_subject.parquet")

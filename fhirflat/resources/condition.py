@@ -79,8 +79,8 @@ class Condition(_Condition, FHIRFlatBase):
         elif isinstance(data_dict, dict):
             data: dict = data_dict
 
-        data["encounter"] = {"reference": data["encounter"]}
-        data["subject"] = {"reference": data["subject"]}
+        for field in ({"patient", "encounter"}).intersection(data.keys()):
+            data[field] = {"reference": data[field]}
 
         # add default clinicalStatus back in
         data["clinicalStatus"] = {
