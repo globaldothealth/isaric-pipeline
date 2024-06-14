@@ -67,7 +67,9 @@ class Immunization(_Immunization, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Immunization:
+    def cleanup(
+        cls, data_dict: JsonString | dict, json_data=True
+    ) -> Immunization | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data

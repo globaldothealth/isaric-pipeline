@@ -58,7 +58,9 @@ class Patient(_Patient, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Patient:
+    def cleanup(
+        cls, data_dict: JsonString | dict, json_data=True
+    ) -> Patient | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data

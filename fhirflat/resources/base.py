@@ -50,7 +50,9 @@ class FHIRFlatBase(_DomainResource):
         return [x for x in cls.elements_sequence() if x not in cls.flat_exclusions]
 
     @classmethod
-    def cleanup(cls, data: JsonString | dict, json_data=True) -> FHIRFlatBase:
+    def cleanup(
+        cls, data: JsonString | dict, json_data=True
+    ) -> FHIRFlatBase | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data

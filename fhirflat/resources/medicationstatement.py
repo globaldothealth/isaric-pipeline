@@ -30,7 +30,7 @@ class MedicationStatement(_MedicationStatement, FHIRFlatBase):
     @classmethod
     def cleanup(
         cls, data_dict: JsonString | dict, json_data=True
-    ) -> MedicationStatement:
+    ) -> MedicationStatement | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data

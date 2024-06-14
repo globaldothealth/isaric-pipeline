@@ -24,7 +24,9 @@ class Specimen(_Specimen, FHIRFlatBase):
     }
 
     @classmethod
-    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Specimen:
+    def cleanup(
+        cls, data_dict: JsonString | dict, json_data=True
+    ) -> Specimen | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data

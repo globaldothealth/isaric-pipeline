@@ -24,7 +24,9 @@ class ResearchSubject(_ResearchSubject, FHIRFlatBase):
     flat_defaults: ClassVar[list[str]] = [*FHIRFlatBase.flat_defaults, "status"]
 
     @classmethod
-    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> ResearchSubject:
+    def cleanup(
+        cls, data_dict: JsonString | dict, json_data=True
+    ) -> ResearchSubject | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data

@@ -80,7 +80,9 @@ class Procedure(_Procedure, FHIRFlatBase):
         return extensions
 
     @classmethod
-    def cleanup(cls, data_dict: JsonString | dict, json_data=True) -> Procedure:
+    def cleanup(
+        cls, data_dict: JsonString | dict, json_data=True
+    ) -> Procedure | ValidationError:
         """
         Load data into a dictionary-like structure, then
         apply resource-specific changes and unpack flattened data
