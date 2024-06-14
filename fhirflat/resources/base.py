@@ -60,7 +60,7 @@ class FHIRFlatBase(_DomainResource):
 
     @classmethod
     def create_fhir_resource(
-        cls, data_dict: JsonString | dict, json_data=True
+        cls, data: JsonString | dict
     ) -> FHIRFlatBase | ValidationError:
         """
         Load data into a dictionary-like structure, then
@@ -68,10 +68,9 @@ class FHIRFlatBase(_DomainResource):
         like codeableConcepts back into structured data.
         Creates a FHIR resource from the data.
         """
-        if json_data and isinstance(data_dict, str):
-            data: dict = orjson.loads(data_dict)
-        elif isinstance(data_dict, dict):
-            data: dict = data_dict
+
+        if not isinstance(data, dict):
+            data: dict = orjson.loads(data)
 
         data = cls.cleanup(data)
 
@@ -210,9 +209,7 @@ class FHIRFlatBase(_DomainResource):
         data.loc[:, "flat_dict"] = cls.ingest_backbone_elements(data["flat_dict"])
 
         # Creates a columns of FHIR resource instances
-        data["fhir"] = data["flat_dict"].apply(
-            lambda x: cls.create_fhir_resource(x, json_data=False)
-        )
+        data["fhir"] = data["flat_dict"].apply(lambda x: cls.create_fhir_resource(x))
 
         data["validation_error"] = data["fhir"].apply(
             lambda x: isinstance(x, ValidationError)
