@@ -153,10 +153,11 @@ def create_dict_wide(
         if not duplicate_keys:
             result = result | snippet
         else:
-            if all(
-                result[key] == snippet[key] for key in duplicate_keys
-            ):  # Ignore duplicates if they are the same
+            # Ignore duplicates if they are the same
+            # stringify lists/lists of numbers to get this to work without value errors
+            if all(str(result[key]) == str(snippet[key]) for key in duplicate_keys):
                 continue
+            # replace placeholders with actual values
             elif all(result[key] is None for key in duplicate_keys):
                 result.update(snippet)
             else:
@@ -441,23 +442,23 @@ def convert_data_to_flat(
             os.path.join(folder_name, resource.__name__.lower()),
         )
 
+        end_time = timeit.default_timer()
+        total_time = end_time - start_time
+        print(
+            f"{resource.__name__} took {total_time:.2f} seconds to convert"
+            f" {len(df)} rows. "
+        )
+
         if errors:
             errors.to_csv(
                 os.path.join(folder_name, f"{resource.__name__.lower()}_errors.csv"),
                 index=False,
             )
             error_length = len(errors)
-        else:
-            error_length = 0
-
-        end_time = timeit.default_timer()
-        total_time = end_time - start_time
-        print(
-            f"{resource.__name__} took {total_time:.2f} seconds to convert"
-            f" {len(df)} rows. "
-            f"{error_length} resources not created due to validation errors."
-            f"Errors saved to {resource.__name__.lower()}_errors.csv"
-        )
+            print(
+                f"{error_length} resources not created due to validation errors."
+                f"Errors saved to {resource.__name__.lower()}_errors.csv"
+            )
 
 
 def main():
