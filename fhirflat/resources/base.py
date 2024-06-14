@@ -116,17 +116,15 @@ class FHIRFlatBase(_DomainResource):
         else:
             resources = list(df["fhir"])
             if any(isinstance(r, ValidationError) for r in resources):
-                df["validation_error"] = df["fhir"].apply(
+                validation_error_mask = df["fhir"].apply(
                     lambda x: isinstance(x, ValidationError)
                 )
 
-                errors = df[df["validation_error"]].drop("validation_error", axis=1)
+                errors = df[validation_error_mask]
                 errors.rename(columns={"fhir": "validation_error"}, inplace=True)
                 errors.to_csv(f"{cls.__name__.lower()}_errors.csv", index=False)
 
-                valid_fhir = df[~df["validation_error"]].drop(
-                    "validation_error", axis=1
-                )
+                valid_fhir = df[~validation_error_mask]
                 resources = list(valid_fhir["fhir"])
 
                 warnings.warn(
