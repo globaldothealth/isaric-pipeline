@@ -144,8 +144,8 @@ def test_format_dates(date_srt, format, tz, expected):
     assert format_dates(date_srt, format, tz) == expected
 
 
-def test_format_dates_error():
-    with pytest.raises(ValueError):
+def test_format_dates_warning():
+    with pytest.warns(UserWarning, match="could not be converted using date format"):
         format_dates("2021-04-01", "%m/%d/%Y", "Brazil/East")
 
 
@@ -879,7 +879,8 @@ def test_load_data_one_to_many_multi_row():
     )
 
     assert df is not None
-    Observation.ingest_to_flat(df.dropna(), "observation_ingestion")
+    clean_df = df.dropna().copy()
+    Observation.ingest_to_flat(clean_df, "observation_ingestion")
 
     full_df = pd.read_parquet("observation_ingestion.parquet")
 
@@ -1010,6 +1011,58 @@ def test_ingest_to_flat_validation_errors():
     error_df = Encounter.ingest_to_flat(df, "encounter_date_error")
     assert len(error_df) == 1
     assert (
-        repr(error_df["fhir"][0].errors())
+        repr(error_df["validation_error"][0].errors())
         == "[{'loc': ('actualPeriod', 'start'), 'msg': 'invalid datetime format', 'type': 'value_error.datetime'}]"  # noqa: E501
     )
+
+
+def test_convert_data_to_flat_local_mapping_errors():
+    output_folder = "tests/ingestion_output_errors"
+    mappings = {
+        Encounter: "tests/dummy_data/encounter_dummy_mapping.csv",
+        Observation: "tests/dummy_data/observation_dummy_mapping.csv",
+    }
+    resource_types = {"Encounter": "one-to-one", "Observation": "one-to-many"}
+
+    with pytest.warns(UserWarning, match="could not be converted using date format"):
+        convert_data_to_flat(
+            "tests/dummy_data/combined_dummy_data_error.csv",
+            folder_name=output_folder,
+            date_format="%Y-%m-%d",
+            timezone="Brazil/East",
+            mapping_files_types=(mappings, resource_types),
+        )
+
+    encounter_df = pd.read_parquet("tests/ingestion_output_errors/encounter.parquet")
+    obs_df = pd.read_parquet("tests/ingestion_output_errors/observation.parquet")
+
+    expected_encounter_minus_errors = (
+        pd.DataFrame(ENCOUNTER_SINGLE_ROW_MULTI).iloc[:-1].dropna(axis=1, how="all")
+    )
+
+    assert_frame_equal(
+        encounter_df,
+        expected_encounter_minus_errors,
+        check_dtype=False,
+        check_like=True,
+    )
+
+    assert len(obs_df) == 33
+
+    obs_df_head = obs_df.head(5)
+
+    assert_frame_equal(
+        obs_df_head,
+        pd.DataFrame(OBS_FLAT),
+        check_dtype=False,
+        check_like=True,
+    )
+
+    encounter_error = pd.read_csv("tests/ingestion_output_errors/encounter_errors.csv")
+    assert len(encounter_error) == 1
+    assert (
+        encounter_error["validation_error"][0]
+        == "1 validation error for Encounter\nactualPeriod -> start\n  invalid datetime format (type=value_error.datetime)"  # noqa: E501
+    )
+
+    shutil.rmtree(output_folder)

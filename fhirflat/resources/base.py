@@ -120,7 +120,7 @@ class FHIRFlatBase(_DomainResource):
                     lambda x: isinstance(x, ValidationError)
                 )
 
-                errors = df[validation_error_mask]
+                errors = df[validation_error_mask].copy()
                 errors.rename(columns={"fhir": "validation_error"}, inplace=True)
                 errors.to_csv(f"{cls.__name__.lower()}_errors.csv", index=False)
 
@@ -209,11 +209,11 @@ class FHIRFlatBase(_DomainResource):
         # Creates a columns of FHIR resource instances
         data["fhir"] = data["flat_dict"].apply(lambda x: cls.create_fhir_resource(x))
 
-        data["validation_error"] = data["fhir"].apply(
+        validation_error_mask = data["fhir"].apply(
             lambda x: isinstance(x, ValidationError)
         )
 
-        valid_fhir = data[~data["validation_error"]]
+        valid_fhir = data[~validation_error_mask].copy()
 
         # flattens resources back out
         flat_df = valid_fhir["fhir"].apply(lambda x: x.to_flat())
@@ -250,7 +250,8 @@ class FHIRFlatBase(_DomainResource):
                 )
 
             flat_df.to_parquet(f"{filename}.parquet")
-        data_errors = data[data["validation_error"]].drop("validation_error", axis=1)
+        data_errors = data[validation_error_mask].copy()
+        data_errors.rename(columns={"fhir": "validation_error"}, inplace=True)
         return data_errors if not data_errors.empty else None
 
     @classmethod

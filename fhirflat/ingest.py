@@ -96,12 +96,22 @@ def format_dates(date_str: str, date_format: str, timezone: str) -> str:
         if "%H" not in date_format:
             date_time_aware = date_time_aware.date()
     except ValueError:
-        # Unconverted data remains in the string (i.e. time is present)
-        date, time = date_str.split(" ")
-        date = datetime.strptime(date, date_format)
-        time = dateutil.parser.parse(time).time()
-        date_time = datetime.combine(date, time)
-        date_time_aware = date_time.replace(tzinfo=new_tz)
+        try:
+            # Unconverted data remains in the string (i.e. time is present)
+            date, time = date_str.split(" ")
+            date = datetime.strptime(date, date_format)
+            time = dateutil.parser.parse(time).time()
+            date_time = datetime.combine(date, time)
+            date_time_aware = date_time.replace(tzinfo=new_tz)
+        except ValueError:
+            # Can't convert data, pass to FHIR to create validation error
+            warnings.warn(
+                f"Date {date_str} could not be converted using date format"
+                f" {date_format}",
+                UserWarning,
+                stacklevel=2,
+            )
+            return date_str
 
     return date_time_aware.isoformat()
 
