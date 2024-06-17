@@ -1008,7 +1008,7 @@ def test_ingest_to_flat_validation_errors():
         index=[0],
     )
 
-    error_df = Encounter.ingest_to_flat(df, "encounter_date_error")
+    error_df = Encounter.ingest_to_flat(df, "encounter_date_error", parallel=False)
     assert len(error_df) == 1
     assert (
         repr(error_df["validation_error"][0].errors())

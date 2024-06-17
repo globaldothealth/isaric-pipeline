@@ -26,7 +26,8 @@ dependencies = [
     "pydantic==2.6.1",
     "pydantic_core==2.16.2",
     "tzdata",
-    "python-dateutil"
+    "python-dateutil",
+    "pandarallel"
 ]
 
 [project.optional-dependencies]
