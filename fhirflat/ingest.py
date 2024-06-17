@@ -449,14 +449,14 @@ def convert_data_to_flat(
             f" {len(df)} rows. "
         )
 
-        if errors:
+        if errors is not None:
             errors.to_csv(
                 os.path.join(folder_name, f"{resource.__name__.lower()}_errors.csv"),
                 index=False,
             )
             error_length = len(errors)
             print(
-                f"{error_length} resources not created due to validation errors."
+                f"{error_length} resources not created due to validation errors. "
                 f"Errors saved to {resource.__name__.lower()}_errors.csv"
             )
 
