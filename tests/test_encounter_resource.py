@@ -412,3 +412,16 @@ def test_encounter_extension_validation_error():
                 ],
             }
         )
+
+
+def test_from_flat_validation_error_multi_resources():
+    with pytest.warns(UserWarning, match="Validation errors found in the data."):
+        fhir_resources = Encounter.from_flat(
+            "tests/data/multi_row_encounter_flat_errors.parquet"
+        )
+        assert len(fhir_resources) == 3
+
+    errors = pd.read_csv("encounter_errors.csv")
+    assert len(errors) == 1
+    assert "invalid datetime format" in errors.iloc[0]["validation_error"]
+    os.remove("encounter_errors.csv")

@@ -96,12 +96,22 @@ def format_dates(date_str: str, date_format: str, timezone: str) -> str:
         if "%H" not in date_format:
             date_time_aware = date_time_aware.date()
     except ValueError:
-        # Unconverted data remains in the string (i.e. time is present)
-        date, time = date_str.split(" ")
-        date = datetime.strptime(date, date_format)
-        time = dateutil.parser.parse(time).time()
-        date_time = datetime.combine(date, time)
-        date_time_aware = date_time.replace(tzinfo=new_tz)
+        try:
+            # Unconverted data remains in the string (i.e. time is present)
+            date, time = date_str.split(" ")
+            date = datetime.strptime(date, date_format)
+            time = dateutil.parser.parse(time).time()
+            date_time = datetime.combine(date, time)
+            date_time_aware = date_time.replace(tzinfo=new_tz)
+        except ValueError:
+            # Can't convert data, pass to FHIR to create validation error
+            warnings.warn(
+                f"Date {date_str} could not be converted using date format"
+                f" {date_format}",
+                UserWarning,
+                stacklevel=2,
+            )
+            return date_str
 
     return date_time_aware.isoformat()
 
@@ -153,10 +163,11 @@ def create_dict_wide(
         if not duplicate_keys:
             result = result | snippet
         else:
-            if all(
-                result[key] == snippet[key] for key in duplicate_keys
-            ):  # Ignore duplicates if they are the same
+            # Ignore duplicates if they are the same
+            # stringify lists/lists of numbers to get this to work without value errors
+            if all(str(result[key]) == str(snippet[key]) for key in duplicate_keys):
                 continue
+            # replace placeholders with actual values
             elif all(result[key] is None for key in duplicate_keys):
                 result.update(snippet)
             else:
@@ -436,16 +447,28 @@ def convert_data_to_flat(
         else:
             raise ValueError(f"Unknown mapping type {t}")
 
-        resource.ingest_to_flat(
+        errors = resource.ingest_to_flat(
             df,
             os.path.join(folder_name, resource.__name__.lower()),
         )
+
         end_time = timeit.default_timer()
         total_time = end_time - start_time
         print(
             f"{resource.__name__} took {total_time:.2f} seconds to convert"
-            f" {len(df)} rows."
+            f" {len(df)} rows. "
         )
+
+        if errors is not None:
+            errors.to_csv(
+                os.path.join(folder_name, f"{resource.__name__.lower()}_errors.csv"),
+                index=False,
+            )
+            error_length = len(errors)
+            print(
+                f"{error_length} resources not created due to validation errors. "
+                f"Errors saved to {resource.__name__.lower()}_errors.csv"
+            )
 
 
 def main():
