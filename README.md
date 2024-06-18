@@ -13,7 +13,7 @@ for the [ISARIC](https://isaric.org) 3.0 project and data pipelines. Portions of
 the code are specific to the ISARIC project, such as ISARIC specific FHIR
 extensions.
 
-The FHIRflat FHIR resources are derived from the 
+The FHIRflat FHIR resources are derived from the
 [fhir.resources](https://github.com/nazrulworld/fhir.resources) package.
 
 For more information, howtos and tutorials, see the
@@ -35,7 +35,7 @@ https://github.com/globaldothealth/fhirflat/main.tar.gz
 ## Development
 
 To test and develop fhirflat, from a cloned version of fhirflat use an editable install
-including the development dependencies(`pip install -e ".[dev]"`). This will allow you 
+including the development dependencies(`pip install -e ".[dev]"`). This will allow you
 to test the packages, and installs formatting and linting tools, and
 [pre-commit](https://pre-commit.com).
 

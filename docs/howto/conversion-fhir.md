@@ -38,7 +38,7 @@ from fhirflat import Patient
 Patient.fhir_file_to_flat("patient_export.ndjson")
 ```
 creates a "patient_export.parquet" FHIRflat file.
-This first initialises a `Patient` data class for each row to make use of the Pydantic 
+This first initialises a `Patient` data class for each row to make use of the Pydantic
 data validation, then creates a FHIRflat file.
 
 ## From FHIRflat
