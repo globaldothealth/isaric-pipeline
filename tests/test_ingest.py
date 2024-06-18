@@ -5,17 +5,28 @@ from fhirflat.ingest import (
     format_dates,
     create_dict_wide,
     create_dict_long,
+    generate_metadata,
+    write_metadata,
+    checksum,
 )
 from fhirflat.resources.encounter import Encounter
 from fhirflat.resources.observation import Observation
 import pandas as pd
 from pandas.testing import assert_frame_equal
 import os
+import sys
 import shutil
+from pathlib import Path
 from decimal import Decimal
 import numpy as np
 import pytest
 
+if sys.version_info < (3, 11):  # tomllib was introduced in 3.11
+    import tomli
+else:
+    import tomllib as tomli
+
+METADATA_CHECKSUM = "64c9da8c3bef0174342de0aeb335282ac05bfa6b4ef94ce4a523fb446858a6bf"
 FIELD_VAL_ROW_WIDE = pd.Series(
     {
         "dates_enrolment": "2021-04-02",
@@ -923,6 +934,28 @@ def test_convert_data_to_flat_wrong_mapping_type_error():
             timezone="Brazil/East",
             mapping_files_types=(mappings, resource_types),
         )
+
+
+def test_generate_metadata():
+    meta = generate_metadata("tests/bundle")
+    assert meta[0]["checksum"] == METADATA_CHECKSUM
+    assert meta[0]["N"] == 2
+    assert meta[1] == {
+        "condition.parquet": "cfe0c5f792e47facffda38d0ddaf2f8b87613998eb99aefa56d99551dcb7bf80",
+        "encounter.parquet": "165f2295e6419f9674c909b53553006e9715691c6a3f1a739f4313c08fde0747",
+        "patient.parquet": "710c73bf95f3b5d95bfdcfed18c9c41609a3fe00dd32590d43372e3220b8e971",
+    }
+
+
+def test_write_metadata():
+    meta = generate_metadata("tests/bundle")
+    write_metadata(*meta, Path("tests/bundle/fhirflat.toml"))
+    metadata = tomli.loads(Path("tests/bundle/fhirflat.toml").read_text())["metadata"]
+    assert metadata["checksum"] == METADATA_CHECKSUM
+    assert metadata["N"] == 2
+    assert checksum("tests/bundle/sha256sums.txt") == METADATA_CHECKSUM
+    os.remove("tests/bundle/fhirflat.toml")
+    os.remove("tests/bundle/sha256sums.txt")
 
 
 def test_convert_data_to_flat_local_mapping():

@@ -26,7 +26,7 @@ dependencies = [
     "pydantic==2.6.1",
     "pydantic_core==2.16.2",
     "tzdata",
-    "python-dateutil"
+    "python-dateutil",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +35,7 @@ dev = [
   "pytest-cov",
   "pytest-unordered",
   "ruff",
+  "tomli==2.*; python_version < '3.11'",
   "pre-commit"
 ]
 docs = [
@@ -73,4 +74,7 @@ extend-select = [
     "RUF",      # Ruff-specific
     "YTT",      # flake8-2020
 ]
-ignore = ["C901"]
+ignore = [
+  "C901",       # function is too complex
+  "C408",       # unnecessary `dict` call (rewrite as a literal)
+]
