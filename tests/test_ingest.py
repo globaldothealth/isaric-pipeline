@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 if sys.version_info < (3, 11):  # tomllib was introduced in 3.11
-    import tomli
+    import tomli  # pragma: no cover
 else:
     import tomllib as tomli
 
@@ -941,9 +941,9 @@ def test_generate_metadata():
     assert meta[0]["checksum"] == METADATA_CHECKSUM
     assert meta[0]["N"] == 2
     assert meta[1] == {
-        "condition.parquet": "cfe0c5f792e47facffda38d0ddaf2f8b87613998eb99aefa56d99551dcb7bf80",
-        "encounter.parquet": "165f2295e6419f9674c909b53553006e9715691c6a3f1a739f4313c08fde0747",
-        "patient.parquet": "710c73bf95f3b5d95bfdcfed18c9c41609a3fe00dd32590d43372e3220b8e971",
+        "condition.parquet": "cfe0c5f792e47facffda38d0ddaf2f8b87613998eb99aefa56d99551dcb7bf80",  # noqa: E501
+        "encounter.parquet": "165f2295e6419f9674c909b53553006e9715691c6a3f1a739f4313c08fde0747",  # noqa: E501
+        "patient.parquet": "710c73bf95f3b5d95bfdcfed18c9c41609a3fe00dd32590d43372e3220b8e971",  # noqa: E501
     }
 
 
