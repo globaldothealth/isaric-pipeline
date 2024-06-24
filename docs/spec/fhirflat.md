@@ -51,7 +51,7 @@ normalising a FHIR structure, noted below.
         "display": "Donald Duck"
     }
     ```
-    becomes 
+    becomes
     | subject.reference |
     |-------------------|
     |"Patient/f001"     |
@@ -154,7 +154,7 @@ normalising a FHIR structure, noted below.
         },
     ]
     ```
-    becomes 
+    becomes
     | encounter.diagnosis_dense            |
     |--------------------------------------|
     |"[{"condition": [{"reference"...}]}]" |
