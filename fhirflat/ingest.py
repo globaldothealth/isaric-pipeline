@@ -4,17 +4,22 @@ FHIRflat.
 """
 
 import argparse
+import hashlib
 import os
 import timeit
 import warnings
 from datetime import datetime
+from glob import glob
 from math import isnan
+from pathlib import Path
+from typing import Literal, TypedDict
 from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import numpy as np
 import pandas as pd
 
+import fhirflat
 from fhirflat.util import get_local_resource, group_keys
 
 # 1:1 (single row, single resource) mapping: Patient, Encounter
@@ -29,6 +34,13 @@ TODO
 * Consider using pandarallel (https://pypi.org/project/pandarallel/) to parallelize
     the apply function, particularly for one to many mappings.
 """
+
+
+class FlatMetadata(TypedDict):
+    N: int | Literal["NA"]
+    generator: str
+    checksum: str
+    checksum_file: str
 
 
 def find_field_value(
@@ -357,6 +369,60 @@ def create_dictionary(
         return melted_data["flat_dict"].to_frame()
 
 
+def checksum(file: str) -> str:
+    "Calculate the SHA-256 checksum of a file"
+    h = hashlib.sha256()
+    with open(file, "rb") as fp:
+        while True:
+            data = fp.read(4096)
+            if len(data) == 0:
+                break
+            h.update(data)
+    return h.hexdigest()
+
+
+def checksum_text(checksums: dict[str, str]) -> str:
+    return "\n".join(f"{checksums[k]}  {k}" for k in sorted(checksums)) + "\n"
+
+
+def generate_metadata(folder_name: str) -> tuple[FlatMetadata, dict[str, str]]:
+    "Generate metadata for a FHIRFlat folder"
+
+    patient_file = os.path.join(folder_name, "patient.parquet")
+    if not os.path.exists(patient_file):
+        N = "NA"
+    else:
+        N = len(pd.read_parquet(patient_file).id.unique())
+    if isinstance(N, int):
+        assert N > 0, "patient.parquet file is empty"
+    checksums = {
+        os.path.basename(f): checksum(f) for f in glob(f"{folder_name}/*.parquet")
+    }
+    m = hashlib.sha256()
+    m.update(checksum_text(checksums).encode("utf-8"))
+
+    # write checksums file
+    return {
+        "N": N,
+        "generator": f"fhirflat/{fhirflat.__version__}",
+        "checksum": m.hexdigest(),
+        "checksum_file": "sha256sums.txt",
+    }, checksums
+
+
+def write_metadata(
+    metadata: FlatMetadata, checksums: dict[str, str], metadata_path: Path
+):
+    metadata_text = f"""[metadata]
+N = {metadata['N']}
+generator = "{metadata['generator']}"
+checksum = "{metadata['checksum']}"
+checksum_file = "{metadata['checksum_file']}"
+"""
+    metadata_path.write_text(metadata_text)
+    (metadata_path.parent / "sha256sums.txt").write_text(checksum_text(checksums))
+
+
 def convert_data_to_flat(
     data: str,
     date_format: str,
@@ -458,7 +524,6 @@ def convert_data_to_flat(
             f"{resource.__name__} took {total_time:.2f} seconds to convert"
             f" {len(df)} rows. "
         )
-
         if errors is not None:
             errors.to_csv(
                 os.path.join(folder_name, f"{resource.__name__.lower()}_errors.csv"),
@@ -469,6 +534,8 @@ def convert_data_to_flat(
                 f"{error_length} resources not created due to validation errors. "
                 f"Errors saved to {resource.__name__.lower()}_errors.csv"
             )
+
+    write_metadata(*generate_metadata(folder_name), Path(folder_name) / "fhirflat.toml")
 
 
 def main():

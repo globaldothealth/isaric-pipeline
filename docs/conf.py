@@ -37,7 +37,7 @@ toc_object_entries = False  # prevent classes from showing in toctree
 
 html_theme = "better"
 html_static_path = ["_static"]
-html_theme_path=[better.better_theme_path]
+html_theme_path = [better.better_theme_path]
 html_short_title = "Home"
 
 html_theme_options = {

@@ -18,4 +18,6 @@ from .resources import (
 )
 from .ingest import convert_data_to_flat
 
+# Update this when bumping version in pyproject.toml!
+__version__ = "0.1.0"
 __all__ = ["convert_data_to_flat"]

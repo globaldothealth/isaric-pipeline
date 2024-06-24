@@ -213,7 +213,6 @@ def flattenExtensions(df: pd.DataFrame, extension: str) -> pd.DataFrame:
     """
 
     def expand_and_redefine(df, extension):
-
         def redefine(
             row: pd.Series | pd.DataFrame, extension: str
         ) -> pd.Series | pd.DataFrame:
