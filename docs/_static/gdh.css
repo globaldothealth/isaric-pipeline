@@ -1,0 +1,5 @@
+/* Global.health specific Jupyter book customizations */
+
+html {
+    border-top: 4px solid #0e7569;
+}
