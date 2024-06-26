@@ -1,7 +1,4 @@
 """
-ISARIC FHIR extensions
-======================
-
 Extensions to the base `FHIR resources`_ package that are ISARIC specific.
 
 .. _FHIR resources: https://pypi.org/project/fhir.resources/

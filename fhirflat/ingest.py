@@ -386,7 +386,7 @@ def checksum_text(checksums: dict[str, str]) -> str:
 
 
 def generate_metadata(folder_name: str) -> tuple[FlatMetadata, dict[str, str]]:
-    "Generate metadata for a FHIRFlat folder"
+    "Generate metadata for a FHIRflat folder"
 
     patient_file = os.path.join(folder_name, "patient.parquet")
     if not os.path.exists(patient_file):
