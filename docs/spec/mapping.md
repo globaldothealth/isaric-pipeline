@@ -15,7 +15,7 @@ The usual location for a mapping file is a Google Sheet, which has a URL like
 `https://docs.google.com/spreadsheets/d/{SHEET_URL}/edit`
 ```
 
-### Metadata
+## Metadata
 
 The first sheet of the Google Sheets document MUST be a table with the following
 column headers: `Resources` [cell A1], `Sheet ID` [cell B1] and `Resource Type`
@@ -38,7 +38,7 @@ one of these types:
   of the corresponding FHIRflat resource. One row in the raw data generates
   multiple resources.
 
-### FHIRflat resource mapping sheet
+## FHIRflat resource mapping sheet
 
 Each resource mapping sheet MUST be named the same name as the corresponding FHIRflat resource.
 
@@ -65,7 +65,7 @@ keep the corresponding `raw_variable` entry blank, example:
 |              | 2, Woman     | 446141000124107 | http://snomed.info/sct |
 |              | 99, Unknown  |                 |                        |
 
-#### Column headers
+### Column headers
 
 The rest of the column headers MUST correspond to assignments to FHIRflat
 variables. Nested data in FHIR are represented as flattened versions in
@@ -88,7 +88,7 @@ would flatten to
 [ISARIC specific FHIR extensions](isaric-fhir-extensions.rst) MUST be specified
 with an `extension.` prefix as required in the FHIR standard.
 
-#### Column values
+### Column values
 
 Values in a column (other than `raw_response` and `raw_variable`) are constants
 (such as the preceding example) or refer to column names in the raw data. Column
@@ -109,7 +109,7 @@ Examples:
 Conditional assignments are made using the **`if not`** statement. A value of
 `<A> if not <B>` selects field A if B is blank.
 
-#### Creating list assignments
+### Creating list assignments
 
 FHIR resource entries can be lists, such as a set of codes. This is handled in
 the mapping specification by allowing multiple matches for a (`raw_variable`,
