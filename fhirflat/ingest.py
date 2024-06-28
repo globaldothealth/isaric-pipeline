@@ -338,6 +338,11 @@ def create_dictionary(
                 else:
                     raise ValueError("Multiple values found in one-to-one mapping")
 
+        if filtered_data.drop([subject_id], axis=1).empty:
+            warnings.warn(
+                f"No data found for the {resource} resource.", UserWarning, stacklevel=2
+            )
+            return None
         filtered_data = filtered_data.groupby(subject_id, as_index=False).agg(condense)
 
     if not one_to_one:

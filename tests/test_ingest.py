@@ -8,6 +8,7 @@ from fhirflat.ingest import (
     generate_metadata,
     write_metadata,
     checksum,
+    main,
 )
 from fhirflat.resources.encounter import Encounter
 from fhirflat.resources.observation import Observation
@@ -1017,6 +1018,27 @@ def test_convert_data_to_flat_local_mapping_zipped():
     assert os.path.exists("tests/ingestion_output.zip")
 
     os.remove("tests/ingestion_output.zip")
+
+
+def test_main(capsys, monkeypatch):
+    # Simulate command line arguments
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "ingest.py",
+            "tests/dummy_data/combined_dummy_data.csv",
+            "15nQwXBIKnXF9lRHbVVdfFxOMGfLqhOfxZ7GkjSu_Kcs",
+            "%Y-%m-%d",
+            "Brazil/East",
+        ],
+    )
+    with pytest.warns(UserWarning, match="No data found"):
+        main()
+    captured = capsys.readouterr()
+    assert "Encounter took" in captured.out
+    assert "Observation took" in captured.out
+
+    shutil.rmtree("fhirflat_output")
 
 
 def test_ingest_to_flat_validation_errors():
