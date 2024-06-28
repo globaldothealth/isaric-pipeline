@@ -998,6 +998,27 @@ def test_convert_data_to_flat_local_mapping():
     shutil.rmtree(output_folder)
 
 
+def test_convert_data_to_flat_local_mapping_zipped():
+    output_folder = "tests/ingestion_output"
+    mappings = {
+        Encounter: "tests/dummy_data/encounter_dummy_mapping.csv",
+    }
+    resource_types = {"Encounter": "one-to-one"}
+
+    convert_data_to_flat(
+        "tests/dummy_data/combined_dummy_data.csv",
+        folder_name=output_folder,
+        date_format="%Y-%m-%d",
+        timezone="Brazil/East",
+        mapping_files_types=(mappings, resource_types),
+        compress_format="zip",
+    )
+
+    assert os.path.exists("tests/ingestion_output.zip")
+
+    os.remove("tests/ingestion_output.zip")
+
+
 def test_ingest_to_flat_validation_errors():
     df = pd.DataFrame(
         {
