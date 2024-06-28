@@ -432,7 +432,7 @@ def convert_data_to_flat(
     mapping_files_types: tuple[dict, dict] | None = None,
     sheet_id: str | None = None,
     subject_id="subjid",
-    zip_folder=False,
+    compress_format: bool | str = False,
 ):
     """
     Takes raw clinical data (currently assumed to be a one-row-per-patient format like
@@ -460,8 +460,9 @@ def convert_data_to_flat(
         be named by resource, and contain the mapping for that resource.
     subject_id: str
         The name of the column containing the subject ID in the data file.
-    zip_folder: bool
-        Whether to zip the output folder
+    compress_format: bool | str
+        If the output folder should be zipped, and if so with what format. If 'True',
+        defaults to 'zip'.
     """
 
     if not mapping_files_types and not sheet_id:
@@ -540,8 +541,10 @@ def convert_data_to_flat(
             )
 
     write_metadata(*generate_metadata(folder_name), Path(folder_name) / "fhirflat.toml")
-    if zip_folder:
-        shutil.make_archive(folder_name, "zip", folder_name)
+    if compress_format:
+        if compress_format is True:
+            compress_format = "zip"
+        shutil.make_archive(folder_name, compress_format, folder_name)
         shutil.rmtree(folder_name)
 
 
