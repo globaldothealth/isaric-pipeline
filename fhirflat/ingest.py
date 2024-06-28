@@ -6,6 +6,7 @@ FHIRflat.
 import argparse
 import hashlib
 import os
+import shutil
 import timeit
 import warnings
 from datetime import datetime
@@ -431,6 +432,7 @@ def convert_data_to_flat(
     mapping_files_types: tuple[dict, dict] | None = None,
     sheet_id: str | None = None,
     subject_id="subjid",
+    compress_format: None | str = None,
 ):
     """
     Takes raw clinical data (currently assumed to be a one-row-per-patient format like
@@ -458,6 +460,8 @@ def convert_data_to_flat(
         be named by resource, and contain the mapping for that resource.
     subject_id: str
         The name of the column containing the subject ID in the data file.
+    compress_format: optional str
+        If the output folder should be zipped, and if so with what format.
     """
 
     if not mapping_files_types and not sheet_id:
@@ -536,6 +540,9 @@ def convert_data_to_flat(
             )
 
     write_metadata(*generate_metadata(folder_name), Path(folder_name) / "fhirflat.toml")
+    if compress_format:
+        shutil.make_archive(folder_name, compress_format, folder_name)
+        shutil.rmtree(folder_name)
 
 
 def main():
@@ -567,6 +574,13 @@ def main():
         default="subjid",
     )
 
+    parser.add_argument(
+        "-c",
+        "--compress",
+        help="Compress the output folder using this format",
+        choices=["zip", "tar", "gztar", "bztar", "xztar"],
+    )
+
     args = parser.parse_args()
 
     convert_data_to_flat(
@@ -576,6 +590,7 @@ def main():
         folder_name=args.output,
         sheet_id=args.sheet_id,
         subject_id=args.subject_id,
+        compress_format=args.compress,
     )
 
 
