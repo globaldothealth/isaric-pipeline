@@ -9,6 +9,7 @@ import numpy as np
 import orjson
 import pandas as pd
 from fhir.resources.domainresource import DomainResource as _DomainResource
+from pandarallel import pandarallel
 from pydantic.v1 import ValidationError
 
 from fhirflat.fhir2flat import fhir2flat
@@ -186,7 +187,9 @@ class FHIRFlatBase(_DomainResource):
         return condensed_mapped_data
 
     @classmethod
-    def ingest_to_flat(cls, data: pd.DataFrame, filename: str) -> pd.DataFrame | None:
+    def ingest_to_flat(
+        cls, data: pd.DataFrame, filename: str, parallel=True
+    ) -> pd.DataFrame | None:
         """
         Takes a pandas dataframe and populates the resource with the data.
         Creates a FHIRflat parquet file for the resources.
@@ -197,6 +200,9 @@ class FHIRFlatBase(_DomainResource):
             Pandas dataframe containing the data
         filename: str
             Name of the parquet file to be generated.
+        parallel: bool
+            Whether to use parallel processing to speed up the ingestion process.
+            Data must contain more than one row for parallel processing to be used.
 
         Returns
         -------
@@ -206,8 +212,18 @@ class FHIRFlatBase(_DomainResource):
 
         data.loc[:, "flat_dict"] = cls.ingest_backbone_elements(data["flat_dict"])
 
-        # Creates a columns of FHIR resource instances
-        data["fhir"] = data["flat_dict"].apply(lambda x: cls.create_fhir_resource(x))
+        if parallel:
+            pandarallel.initialize(verbose=1)
+
+            # Creates a columns of FHIR resource instances
+            data["fhir"] = data["flat_dict"].parallel_apply(
+                lambda x: cls.create_fhir_resource(x)
+            )
+        else:
+            # use regular pandas apply
+            data["fhir"] = data["flat_dict"].apply(
+                lambda x: cls.create_fhir_resource(x)
+            )
 
         validation_error_mask = data["fhir"].apply(
             lambda x: isinstance(x, ValidationError)
@@ -216,7 +232,10 @@ class FHIRFlatBase(_DomainResource):
         valid_fhir = data[~validation_error_mask].copy()
 
         # flattens resources back out
-        flat_df = valid_fhir["fhir"].apply(lambda x: x.to_flat())
+        if parallel:
+            flat_df = valid_fhir["fhir"].parallel_apply(lambda x: x.to_flat())
+        else:
+            flat_df = valid_fhir["fhir"].apply(lambda x: x.to_flat())
 
         if not flat_df.empty:
             # create FHIR expected date format
